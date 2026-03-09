@@ -25,6 +25,7 @@ type Props = {
   showStar?: boolean;
   isLeftColumn?: boolean;
   onValuePress?: () => void;
+  onStarPress?: (key: string) => void;
 };
 
 const ROW_HEIGHT = 72;
@@ -36,6 +37,7 @@ export default React.memo(function UnitRow({
   showStar = false,
   isLeftColumn = false,
   onValuePress,
+  onStarPress,
 }: Props) {
   const theme = useTheme();
   const styles = createStyles(theme, selected);
@@ -50,7 +52,11 @@ export default React.memo(function UnitRow({
     >
       {/* Star (Only Left Column when enabled) */}
       {showStar && (
-        <View style={styles.starContainer}>
+        <TouchableOpacity
+          style={styles.starContainer}
+          onPress={() => onStarPress?.(item.key)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <MaterialCommunityIcons
             name={item.isFavorite ? 'star' : 'star-outline'}
             size={30}
@@ -60,7 +66,7 @@ export default React.memo(function UnitRow({
                 : theme.colors.textSecondary
             }
           />
-        </View>
+        </TouchableOpacity>
       )}
 
       <View style={styles.content}>
@@ -136,13 +142,13 @@ const createStyles = (theme: any, selected?: boolean) =>
     content: {
       flex: 1,
       justifyContent: 'center',
-      alignItems: 'flex-end',   // 🔥 anchor everything to column end
+      alignItems: 'flex-end',
     },
 
     /* -------- LEFT COLUMN -------- */
 
     leftColumnWrapper: {
-      alignItems: 'flex-end',   // 🔥 force right alignment
+      alignItems: 'flex-end',
       justifyContent: 'center',
       width: '100%',
     },
@@ -150,7 +156,7 @@ const createStyles = (theme: any, selected?: boolean) =>
     inlineValueContainer: {
       flexDirection: 'row',
       alignItems: 'baseline',
-      justifyContent: 'flex-end', // 🔥 keep value stuck right
+      justifyContent: 'flex-end',
       marginBottom: 2,
     },
 
@@ -170,7 +176,7 @@ const createStyles = (theme: any, selected?: boolean) =>
     },
 
     leftText: {
-      alignItems: 'flex-end',  // 🔥 no shifting
+      alignItems: 'flex-end',
       justifyContent: 'center',
     },
 

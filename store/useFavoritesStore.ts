@@ -2,13 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { persist, PersistStorage } from 'zustand/middleware';
 
-type FavoritesState = {
-  favorites: string[];
-  toggleFavorite: (key: string) => void;
-  isFavorite: (key: string) => boolean;
+type CategoryFavoritesState = {
+  categoryFavorites: string[];
+  toggleCategoryFavorite: (categoryKey: string) => void;
+  isCategoryFavorite: (categoryKey: string) => boolean;
 };
 
-const storage: PersistStorage<FavoritesState> = {
+const storage: PersistStorage<CategoryFavoritesState> = {
   getItem: async (name) => {
     const item = await AsyncStorage.getItem(name);
     return item ? JSON.parse(item) : null;
@@ -21,25 +21,26 @@ const storage: PersistStorage<FavoritesState> = {
   },
 };
 
-export const useFavoritesStore = create<FavoritesState>()(
+export const useFavoritesStore = create<CategoryFavoritesState>()(
   persist(
     (set, get) => ({
-      favorites: [],
-      toggleFavorite: (key: string) => {
-        const favs = get().favorites;
-        const exists = favs.includes(key);
-        if (exists) {
-          set({ favorites: favs.filter((k) => k !== key) });
-        } else {
-          set({ favorites: Array.from(new Set([...favs, key])) });
-        }
+      categoryFavorites: [],
+      toggleCategoryFavorite: (categoryKey: string) => {
+        set((state) => {
+          const exists = state.categoryFavorites.includes(categoryKey);
+          return {
+            categoryFavorites: exists
+              ? state.categoryFavorites.filter((k) => k !== categoryKey)
+              : [...state.categoryFavorites, categoryKey],
+          };
+        });
       },
-      isFavorite: (key: string) => {
-        return get().favorites.includes(key);
+      isCategoryFavorite: (categoryKey: string) => {
+        return get().categoryFavorites.includes(categoryKey);
       },
     }),
     {
-      name: 'favorites-storage',
+      name: 'category-favorites-storage',
       storage,
     }
   )

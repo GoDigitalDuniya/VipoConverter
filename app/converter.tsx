@@ -123,8 +123,8 @@ const CategoryCard = React.memo(function CategoryCard({
   onToggleFavorite: (key: string, added: boolean) => void;
   t: ReturnType<typeof useTheme>;
 }) {
-  const isFav = useFavoritesStore(useCallback((s) => s.favorites.includes(item.key), [item.key]));
-  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
+  const isFav = useFavoritesStore(useCallback((s) => s.categoryFavorites.includes(item.key), [item.key]));
+  const toggleFavorite = useFavoritesStore((s) => s.toggleCategoryFavorite);
 
   const handleToggle = useCallback(() => {
     toggleFavorite(item.key);
@@ -178,7 +178,7 @@ export default function ConverterScreen() {
   const [query, setQuery] = useState('');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
-  const favorites = useFavoritesStore((s) => s.favorites);
+  const categoryFavorites = useFavoritesStore((s) => s.categoryFavorites);
 
   const categories = useMemo(() => ALL_CATEGORIES, []);
 
@@ -186,9 +186,9 @@ export default function ConverterScreen() {
     const q = query.trim().toLowerCase();
     let list = categories;
     if (q) list = categories.filter((c) => c.title.toLowerCase().includes(q));
-    if (showOnlyFavorites) list = list.filter((c) => favorites.includes(c.key));
+    if (showOnlyFavorites) list = list.filter((c) => categoryFavorites.includes(c.key));
     return list;
-  }, [categories, query, showOnlyFavorites, favorites]);
+  }, [categories, query, showOnlyFavorites, categoryFavorites]);
 
   const [toastVisible, setToastVisible] = useState(false);
   const [toastCategory, setToastCategory] = useState('');

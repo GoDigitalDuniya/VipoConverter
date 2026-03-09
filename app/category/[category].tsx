@@ -1,47 +1,52 @@
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams } from "expo-router";
 import React, {
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 import {
-    FlatList,
-    LayoutChangeEvent,
-    ListRenderItemInfo,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  BackHandler,
+  FlatList,
+  LayoutChangeEvent,
+  ListRenderItemInfo,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import CategoryTopBar from "../../components/CategoryTopBar";
+import NumberPad from "../../components/NumberPad";
 import UnitRow from "../../components/UnitRow";
+import { ROW_HEIGHT } from "../../src/constants/layout";
+import { getUnitsForCategory } from "../../src/conversions/getUnitsForCategory";
+import { useConversionValues } from "../../src/hooks/useConversionValues";
+import { useNumberPad } from "../../src/hooks/useNumberPad";
+import { useUnitSelection } from "../../src/hooks/useUnitSelection";
+import { useWheelScroll } from "../../src/hooks/useWheelScroll";
+import useUnitSearchStore from "../../src/store/useUnitSearchStore";
+import { Unit } from "../../src/types/unit";
+import { prettyName } from "../../src/utils/stringUtils";
+import useUnitFavoritesStore from "../../store/useUnitFavoritesStore";
 import { useTheme } from "../../theme/ThemeProvider";
 import { TitleContext } from "../_layout";
-
-const ROW_HEIGHT = 72;
-
-function prettyName(key?: string) {
-  if (!key) return "";
-  return key
-    .replace(/[-_]/g, " ")
-    .split(" ")
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join(" ");
-}
 
 export default function CategoryScreen() {
   const { category } = useLocalSearchParams<{ category: string }>();
   const display = prettyName(category);
   const { setTitle } = useContext(TitleContext);
+  const navigation = useNavigation();
   const theme = useTheme();
 
-  const leftRef = useRef<FlatList>(null);
-  const rightRef = useRef<FlatList>(null);
-  const inputRef = useRef<TextInput>(null);
+  const unitFavorites = useUnitFavoritesStore((state) => state.unitFavorites);
+  const favoritesFilterEnabled = useUnitFavoritesStore((state) => state.favoritesFilterEnabled);
+  const toggleUnitFavorite = useUnitFavoritesStore((state) => state.toggleUnitFavorite);
+  const leftSearch = useUnitSearchStore((state) => state.leftSearch);
+  const rightSearch = useUnitSearchStore((state) => state.rightSearch);
+  const clearLeftSearch = useUnitSearchStore((state) => state.clearLeftSearch);
+  const clearRightSearch = useUnitSearchStore((state) => state.clearRightSearch);
 
   const [containerHeight, setContainerHeight] = useState(0);
 
@@ -49,51 +54,126 @@ export default function CategoryScreen() {
     setTitle(display);
     return () => setTitle(undefined);
   }, [display]);
-  
+
   const styles = createStyles(theme);
 
   /* ---------------- Units ---------------- */
 
-  const UNITS = useMemo(
-    () => [
-      { key: "bit", short: "Bit", multiplier: 1 },
-      { key: "byte", short: "Byte", multiplier: 8 },
-      { key: "kbit", short: "Kbit", multiplier: 1000 },
-      { key: "kbyte", short: "KB", multiplier: 8000 },
-      { key: "mbit", short: "Mbit", multiplier: 1000000 },
-      { key: "mbyte", short: "MB", multiplier: 8000000 },
-      { key: "gbit", short: "Gbit", multiplier: 1000000000 },
-      { key: "gbyte", short: "GB", multiplier: 8000000000 },
-    ],
-    []
+  const UNITS = useMemo(() => getUnitsForCategory(category || "data"), [category]);
+
+  const visibleUnits = useMemo(() => {
+    if (!favoritesFilterEnabled) return UNITS;
+    const filtered = UNITS.filter((u) => unitFavorites.includes(u.key));
+    return filtered.length > 0 ? filtered : UNITS;
+  }, [UNITS, favoritesFilterEnabled, unitFavorites]);
+
+  const matchesSearch = useCallback((unit: Unit, query: string) => {
+    if (!query) return true;
+
+    const q = query.toLowerCase();
+    const displayName = (unit.name ?? unit.key).toLowerCase();
+
+    return (
+      unit.short.toLowerCase().includes(q) ||
+      displayName.includes(q)
+    );
+  }, []);
+
+  const leftUnits = useMemo(() => {
+    return visibleUnits.filter((u) => matchesSearch(u, leftSearch));
+  }, [visibleUnits, leftSearch, matchesSearch]);
+
+  const rightUnits = useMemo(() => {
+    return visibleUnits.filter((u) => matchesSearch(u, rightSearch));
+  }, [visibleUnits, rightSearch, matchesSearch]);
+
+  const {
+    inputUnit,
+    outputUnit,
+    setInputUnit,
+    setOutputUnit,
+  } = useUnitSelection({
+    visibleUnits,
+    favoritesFilterEnabled,
+  });
+
+  const {
+    leftRef,
+    rightRef,
+    handleScrollEndLeft,
+    handleScrollEndRight,
+    recenterSelectedUnits,
+    swapUnits,
+  } = useWheelScroll({
+    visibleUnitsLeft: leftUnits,
+    visibleUnitsRight: rightUnits,
+    inputUnit,
+    outputUnit,
+    setInputUnit,
+    setOutputUnit,
+    favoritesFilterEnabled,
+  });
+
+  useEffect(() => {
+    return () => {
+      clearLeftSearch();
+      clearRightSearch();
+    };
+  }, [clearLeftSearch, clearRightSearch]);
+
+  const {
+    inputValue,
+    setInputValue,
+    isNumberPadVisible,
+    showNumberPad,
+    hideNumberPad,
+    handleNumberPadKeyPress,
+  } = useNumberPad({
+    onSwapUnits: swapUnits,
+  });
+
+  // Recenter lists when container height or NumberPad visibility changes
+  useEffect(() => {
+    if (containerHeight <= 0 || (leftUnits.length === 0 && rightUnits.length === 0)) return;
+
+    const handle = requestAnimationFrame(() => {
+      recenterSelectedUnits(false);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, [containerHeight, isNumberPadVisible, recenterSelectedUnits, leftUnits.length, rightUnits.length]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          if (!isNumberPadVisible) return false;
+          hideNumberPad();
+          return true;
+        }
+      );
+
+      return () => subscription.remove();
+    }, [hideNumberPad, isNumberPadVisible])
   );
 
-  const [inputValue, setInputValue] = useState("0");
-  const [inputUnit, setInputUnit] = useState("bit");
-  const [outputUnit, setOutputUnit] = useState("bit");
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
+      if (!isNumberPadVisible) return;
+      event.preventDefault();
+      hideNumberPad();
+    });
+
+    return unsubscribe;
+  }, [hideNumberPad, isNumberPadVisible, navigation]);
 
   /* ---------------- Conversion ---------------- */
 
-  const convert = useCallback(
-    (value: string, fromKey: string, toKey: string) => {
-      const from = UNITS.find((u) => u.key === fromKey);
-      const to = UNITS.find((u) => u.key === toKey);
-      if (!from || !to) return "0";
-
-      const num = parseFloat(value || "0");
-      const base = num * from.multiplier;
-      const result = base / to.multiplier;
-      return Number.isFinite(result) ? result.toString() : "0";
-    },
-    [UNITS]
-  );
-
-  const convertedValues = useMemo(() => {
-    return UNITS.reduce((acc: any, unit) => {
-      acc[unit.key] = convert(inputValue, inputUnit, unit.key);
-      return acc;
-    }, {});
-  }, [inputValue, inputUnit, convert]);
+  const convertedValues = useConversionValues({
+    inputValue,
+    inputUnit,
+    units: UNITS,
+  });
 
   /* ---------------- Center Padding ---------------- */
 
@@ -102,73 +182,43 @@ export default function CategoryScreen() {
       ? containerHeight / 2 - ROW_HEIGHT / 2
       : 0;
 
-  /* ---------------- Scroll Handling ---------------- */
-
-  const handleScrollEndLeft = (e: any) => {
-    const offsetY = e.nativeEvent.contentOffset.y;
-    const index = Math.round(offsetY / ROW_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(index, UNITS.length - 1));
-    setInputUnit(UNITS[clampedIndex].key);
-
-    leftRef.current?.scrollToOffset({
-      offset: clampedIndex * ROW_HEIGHT,
-      animated: true,
-    });
-  };
-
-  const handleScrollEndRight = (e: any) => {
-    const offsetY = e.nativeEvent.contentOffset.y;
-    const index = Math.round(offsetY / ROW_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(index, UNITS.length - 1));
-    setOutputUnit(UNITS[clampedIndex].key);
-
-    rightRef.current?.scrollToOffset({
-      offset: clampedIndex * ROW_HEIGHT,
-      animated: true,
-    });
-  };
-
   /* ---------------- Render ---------------- */
 
   const renderLeft = useCallback(
-    ({ item }: ListRenderItemInfo<any>) => (
+    ({ item }: ListRenderItemInfo<Unit>) => (
       <UnitRow
         item={{
           key: item.key,
           shortLabel: item.short,
           name: item.short,
           value: item.key === inputUnit ? inputValue : 0,
+          isFavorite: unitFavorites.includes(item.key),
         }}
         selected={item.key === inputUnit}
         showStar
         isLeftColumn
-        onValuePress={() => {
-          try {
-            inputRef.current?.blur();
-          } catch (e) {}
-          setTimeout(() => {
-            inputRef.current?.focus();
-          }, 80);
-        }}
+        onValuePress={showNumberPad}
+        onStarPress={toggleUnitFavorite}
       />
     ),
-    [inputUnit, inputValue]
+    [inputUnit, inputValue, showNumberPad, toggleUnitFavorite, unitFavorites]
   );
 
   const renderRight = useCallback(
-    ({ item }: ListRenderItemInfo<any>) => (
+    ({ item }: ListRenderItemInfo<Unit>) => (
       <UnitRow
         item={{
           key: item.key,
           shortLabel: item.short,
           name: item.short,
           value: convertedValues[item.key],
+          isFavorite: unitFavorites.includes(item.key),
         }}
         selected={item.key === outputUnit}
         isLeftColumn={false}
       />
     ),
-    [outputUnit, convertedValues]
+    [outputUnit, convertedValues, unitFavorites]
   );
 
   return (
@@ -186,7 +236,7 @@ export default function CategoryScreen() {
 
         <FlatList
           ref={leftRef}
-          data={UNITS}
+          data={leftUnits}
           keyExtractor={(i) => i.key}
           renderItem={renderLeft}
           getItemLayout={(_, index) => ({
@@ -205,7 +255,7 @@ export default function CategoryScreen() {
 
         <FlatList
           ref={rightRef}
-          data={UNITS}
+          data={rightUnits}
           keyExtractor={(i) => i.key}
           renderItem={renderRight}
           getItemLayout={(_, index) => ({
@@ -223,28 +273,18 @@ export default function CategoryScreen() {
         />
       </View>
 
-      <TextInput
-        ref={inputRef}
-        value={inputValue}
-        onChangeText={setInputValue}
-        keyboardType="numeric"
-        style={{ position: "absolute", opacity: 0 }}
-      />
+      {isNumberPadVisible && (
+        <NumberPad onKeyPress={handleNumberPadKeyPress} />
+      )}
 
-      <TouchableOpacity
-        style={styles.keyboardButton}
-        onPress={() => {
-          // Ensure a reliable toggle: blur first then focus after a short delay
-          try {
-            inputRef.current?.blur();
-          } catch (e) {}
-          setTimeout(() => {
-            inputRef.current?.focus();
-          }, 80);
-        }}
-      >
-        <Text style={styles.keyboardText}>Show Keyboard</Text>
-      </TouchableOpacity>
+      {!isNumberPadVisible && (
+        <TouchableOpacity
+          style={styles.keyboardButton}
+          onPress={showNumberPad}
+        >
+          <Text style={styles.keyboardText}>Show Keyboard</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -275,7 +315,7 @@ const createStyles = (theme: any) =>
     },
     keyboardButton: {
       position: "absolute",
-      bottom: 20,
+      bottom: 0,
       alignSelf: "center",
       backgroundColor: theme.colors.surface,
       paddingHorizontal: 20,

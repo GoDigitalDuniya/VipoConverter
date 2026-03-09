@@ -103,7 +103,7 @@ function LayoutContent(): JSX.Element {
         </View>
       </View>
 
-      <View style={{ flex: 1, backgroundColor, paddingBottom: Math.max(insets.bottom, 16) }}>
+      <View style={{ flex: 1, backgroundColor, paddingBottom: insets.bottom }}>
         <TitleContext.Provider value={{ setTitle: setOverrideTitle }}>
           <Slot />
         </TitleContext.Provider>
