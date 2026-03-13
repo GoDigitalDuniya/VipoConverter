@@ -1,4 +1,3 @@
-import { UnitDefinition } from "../types/unit";
 import { anglesUnits } from "../categories/angles";
 import { areaUnits } from "../categories/area";
 import { calorieUnits } from "../categories/calorie";
@@ -32,6 +31,7 @@ import { vacuumUnits } from "../categories/vacuum";
 import { volumeUnits } from "../categories/volume";
 import { volumeFlowRateUnits } from "../categories/volumeFlowRate";
 import { weightUnits } from "../categories/weight";
+import { UnitDefinition } from "../types/unit";
 
 export const CATEGORY_REGISTRY: Record<string, UnitDefinition[]> = {
   angles: anglesUnits,
@@ -49,6 +49,7 @@ export const CATEGORY_REGISTRY: Record<string, UnitDefinition[]> = {
   frequency: frequencyUnits,
   "fuel-consumption": fuelConsumptionUnits,
   illumination: illuminationUnits,
+  "kinematic-viscosity": kineticViscosityUnits,
   "kinetic-viscosity": kineticViscosityUnits,
   "moment-of-inertia": momentOfInertiaUnits,
   numbers: numbersUnits,

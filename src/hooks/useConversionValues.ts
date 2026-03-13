@@ -1,6 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { convert } from "../conversion/engine/convert";
 import { ConversionMap, Unit } from "../types/unit";
+import { formatConversionNumber } from "../utils/formatConversionNumber";
+import useSettingsStore from "../../store/useSettingsStore";
 
 /**
  * Parameters for the useConversionValues hook.
@@ -41,13 +43,14 @@ export function useConversionValues({
   inputUnit,
   units,
 }: UseConversionValuesParams): ConversionMap {
+  const digits = useSettingsStore((s) => s.numberOfDigits);
   const convertByKey = useCallback(
     (value: string, fromKey: string, toKey: string): string => {
       const num = parseFloat(value || "0");
       const result = convert(category, num, fromKey, toKey);
-      return result.toString();
+      return formatConversionNumber(result, digits);
     },
-    [category]
+    [category, digits]
   );
 
   const convertedValues = useMemo(() => {

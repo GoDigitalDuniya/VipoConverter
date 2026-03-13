@@ -1,103 +1,108 @@
+// Auto-generated unit definitions for angles
+// Base unit: radian
+// Last updated: 2026-03-13
 import { UnitDefinition } from "../types/unit";
 
 const PI = Math.PI;
 
 export const anglesUnits: UnitDefinition[] = [
+  // ── Angular Units ──
   {
     key: "radian",
     label: "Radian",
-    toBase: (v) => v,
-    fromBase: (v) => v,
+    symbol: "rad",
+    toBase: (v: number) => v,
+    fromBase: (v: number) => v,
   },
-
   {
     key: "degree",
     label: "Degree",
-    toBase: (v) => v * (PI / 180),
-    fromBase: (v) => v * (180 / PI),
+    symbol: "°",
+    toBase: (v: number) => v * (PI / 180),
+    fromBase: (v: number) => v * (180 / PI),
   },
-
   {
     key: "grad",
     label: "Grad",
-    toBase: (v) => v * (PI / 200),
-    fromBase: (v) => v * (200 / PI),
+    symbol: "^g",
+    toBase: (v: number) => v * (PI / 200),
+    fromBase: (v: number) => v * (200 / PI),
   },
-
   {
     key: "minute",
     label: "Minute",
-    toBase: (v) => v * (PI / 10800),
-    fromBase: (v) => v * (10800 / PI),
+    symbol: "'",
+    toBase: (v: number) => v * (PI / 10800),
+    fromBase: (v: number) => v * (10800 / PI),
   },
-
   {
     key: "second",
     label: "Second",
-    toBase: (v) => v * (PI / 648000),
-    fromBase: (v) => v * (648000 / PI),
+    symbol: "\"",
+    toBase: (v: number) => v * (PI / 648000),
+    fromBase: (v: number) => v * (648000 / PI),
   },
-
   {
     key: "mil",
     label: "Mil",
-    toBase: (v) => v * (PI / 3200),
-    fromBase: (v) => v * (3200 / PI),
+    symbol: "mil",
+    toBase: (v: number) => v * (PI / 3200),
+    fromBase: (v: number) => v * (3200 / PI),
   },
-
   {
     key: "point",
     label: "Point",
-    toBase: (v) => v * (PI / 16),
-    fromBase: (v) => v * (16 / PI),
+    symbol: "point",
+    toBase: (v: number) => v * (PI / 16),
+    fromBase: (v: number) => v * (16 / PI),
   },
-
   {
-    key: "circle",
-    label: "Full Circle",
-    toBase: (v) => v * (2 * PI),
-    fromBase: (v) => v / (2 * PI),
+    key: "full-circle",
+    label: "Full circle",
+    symbol: "full circle",
+    toBase: (v: number) => v * (2 * PI),
+    fromBase: (v: number) => v / (2 * PI),
   },
-
   {
     key: "half-circle",
-    label: "1/2 Circle",
-    toBase: (v) => v * PI,
-    fromBase: (v) => v / PI,
+    label: "1/2 circle",
+    symbol: "1/2 circle",
+    toBase: (v: number) => v * PI,
+    fromBase: (v: number) => v / PI,
   },
-
   {
     key: "quarter-circle",
-    label: "1/4 Circle",
-    toBase: (v) => v * (PI / 2),
-    fromBase: (v) => v / (PI / 2),
+    label: "1/4 circle",
+    symbol: "1/4 circle",
+    toBase: (v: number) => v * (PI / 2),
+    fromBase: (v: number) => v * (2 / PI),
   },
-
   {
-    key: "one-sixth-circle",
-    label: "1/6 Circle",
-    toBase: (v) => v * (PI / 3),
-    fromBase: (v) => v / (PI / 3),
+    key: "one-sixth",
+    label: "1/6 circle",
+    symbol: "1/6 circle",
+    toBase: (v: number) => v * (PI / 3),
+    fromBase: (v: number) => v * (3 / PI),
   },
-
   {
-    key: "one-eighth-circle",
-    label: "1/8 Circle",
-    toBase: (v) => v * (PI / 4),
-    fromBase: (v) => v / (PI / 4),
+    key: "one-eighth",
+    label: "1/8 circle",
+    symbol: "1/8 circle",
+    toBase: (v: number) => v * (PI / 4),
+    fromBase: (v: number) => v * (4 / PI),
   },
-
   {
-    key: "one-tenth-circle",
-    label: "1/10 Circle",
-    toBase: (v) => v * (PI / 5),
-    fromBase: (v) => v / (PI / 5),
+    key: "one-tenth",
+    label: "1/10 circle",
+    symbol: "1/10 circle",
+    toBase: (v: number) => v * (PI / 5),
+    fromBase: (v: number) => v * (5 / PI),
   },
-
   {
-    key: "one-sixteenth-circle",
-    label: "1/16 Circle",
-    toBase: (v) => v * (PI / 8),
-    fromBase: (v) => v / (PI / 8),
+    key: "one-sixteenth",
+    label: "1/16 circle",
+    symbol: "1/16 circle",
+    toBase: (v: number) => v * (PI / 8),
+    fromBase: (v: number) => v * (8 / PI),
   },
-];  
+];

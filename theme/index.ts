@@ -32,7 +32,7 @@ export const darkTheme: Theme = {
     background: "#000000",
     surface: "#252424",
     text: "#ffffff",
-    textSecondary: "#b0b0b0",
+    textSecondary: "#f7f7f7",
     primary: "#8dc63f",
     border: "#222222",
     inputBackground: "#1e1e1e",

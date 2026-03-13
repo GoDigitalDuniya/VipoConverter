@@ -38,6 +38,7 @@ import { prettyName } from "../../src/utils/stringUtils";
 import useUnitFavoritesStore from "../../store/useUnitFavoritesStore";
 import { useTheme } from "../../theme/ThemeProvider";
 import { TitleContext } from "../_layout";
+import { convert } from "../../src/conversion/engine/convert";
 
 function startOfDay(timestamp: number): number {
   const d = new Date(timestamp);
@@ -323,7 +324,8 @@ export default function CategoryScreen() {
       inputValue,
       inputUnitKey: inputUnit,
       inputUnitLabel: inputUnitDef.label,
-      outputValue,
+      // Store raw (unformatted) output value for history to preserve exact numeric data
+      outputValue: String(convert(categoryKey, Number(inputValue) || 0, inputUnit, outputUnit)),
       outputUnitKey: outputUnit,
       outputUnitLabel: outputUnitDef.label,
       timestamp: Date.now(),
@@ -391,6 +393,7 @@ export default function CategoryScreen() {
         item={{
           key: item.key,
           shortLabel: item.label,
+          symbol: item.symbol,
           name: item.label,
           value: item.key === inputUnit ? inputValue : 0,
           isFavorite: unitFavorites.includes(item.key),
@@ -411,6 +414,7 @@ export default function CategoryScreen() {
         item={{
           key: item.key,
           shortLabel: item.label,
+          symbol: item.symbol,
           name: item.label,
           value: convertedValues[item.key],
           isFavorite: unitFavorites.includes(item.key),
