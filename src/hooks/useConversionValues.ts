@@ -1,11 +1,13 @@
 import { useCallback, useMemo } from "react";
-import { convertValue } from "../conversions/conversionEngine";
+import { convert } from "../conversion/engine/convert";
 import { ConversionMap, Unit } from "../types/unit";
 
 /**
  * Parameters for the useConversionValues hook.
  */
 type UseConversionValuesParams = {
+  /** The converter category key */
+  category: string;
   /** The current input value as a string */
   inputValue: string;
   /** The key of the unit to convert from */
@@ -34,29 +36,26 @@ type UseConversionValuesParams = {
  * ```
  */
 export function useConversionValues({
+  category,
   inputValue,
   inputUnit,
   units,
 }: UseConversionValuesParams): ConversionMap {
-  const convert = useCallback(
+  const convertByKey = useCallback(
     (value: string, fromKey: string, toKey: string): string => {
-      const from = units.find((u) => u.key === fromKey);
-      const to = units.find((u) => u.key === toKey);
-      if (!from || !to) return "0";
-
       const num = parseFloat(value || "0");
-      const result = convertValue(num, from, to);
+      const result = convert(category, num, fromKey, toKey);
       return result.toString();
     },
-    [units]
+    [category]
   );
 
   const convertedValues = useMemo(() => {
     return units.reduce((acc: ConversionMap, unit) => {
-      acc[unit.key] = convert(inputValue, inputUnit, unit.key);
+      acc[unit.key] = convertByKey(inputValue, inputUnit, unit.key);
       return acc;
     }, {} as ConversionMap);
-  }, [inputValue, inputUnit, convert, units]);
+  }, [inputValue, inputUnit, convertByKey, units]);
 
   return convertedValues;
 }

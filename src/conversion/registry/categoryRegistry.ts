@@ -1,0 +1,70 @@
+import { UnitDefinition } from "../types/unit";
+import { anglesUnits } from "../categories/angles";
+import { areaUnits } from "../categories/area";
+import { calorieUnits } from "../categories/calorie";
+import { currencyUnits } from "../categories/currency";
+import { currentUnits } from "../categories/current";
+import { dataUnits } from "../categories/data";
+import { densityUnits } from "../categories/density";
+import { distanceUnits } from "../categories/distance";
+import { dynamicViscosityUnits } from "../categories/dynamicViscosity";
+import { electricChargeUnits } from "../categories/electricCharge";
+import { energyUnits } from "../categories/energy";
+import { forceUnits } from "../categories/force";
+import { frequencyUnits } from "../categories/frequency";
+import { fuelConsumptionUnits } from "../categories/fuelConsumption";
+import { illuminationUnits } from "../categories/illumination";
+import { kineticViscosityUnits } from "../categories/kineticViscosity";
+import { momentOfInertiaUnits } from "../categories/momentOfInertia";
+import { numbersUnits } from "../categories/numbers";
+import { powerUnits } from "../categories/power";
+import { prefixesUnits } from "../categories/prefixes";
+import { pressureUnits } from "../categories/pressure";
+import { radiationAbsorbedUnits } from "../categories/radiationAbsorbed";
+import { radioactivityUnits } from "../categories/radioactivity";
+import { speedUnits } from "../categories/speed";
+import { strengthUnits } from "../categories/strength";
+import { temperatureUnits } from "../categories/temperature";
+import { timeUnits } from "../categories/time";
+import { torqueUnits } from "../categories/torque";
+import { typographyUnits } from "../categories/typography";
+import { vacuumUnits } from "../categories/vacuum";
+import { volumeUnits } from "../categories/volume";
+import { volumeFlowRateUnits } from "../categories/volumeFlowRate";
+import { weightUnits } from "../categories/weight";
+
+export const CATEGORY_REGISTRY: Record<string, UnitDefinition[]> = {
+  angles: anglesUnits,
+  area: areaUnits,
+  calorie: calorieUnits,
+  currency: currencyUnits,
+  current: currentUnits,
+  data: dataUnits,
+  density: densityUnits,
+  distance: distanceUnits,
+  "dynamic-viscosity": dynamicViscosityUnits,
+  "electric-charge": electricChargeUnits,
+  energy: energyUnits,
+  force: forceUnits,
+  frequency: frequencyUnits,
+  "fuel-consumption": fuelConsumptionUnits,
+  illumination: illuminationUnits,
+  "kinetic-viscosity": kineticViscosityUnits,
+  "moment-of-inertia": momentOfInertiaUnits,
+  numbers: numbersUnits,
+  power: powerUnits,
+  prefixes: prefixesUnits,
+  pressure: pressureUnits,
+  "radiation-absorbed": radiationAbsorbedUnits,
+  radioactivity: radioactivityUnits,
+  speed: speedUnits,
+  strength: strengthUnits,
+  temperature: temperatureUnits,
+  time: timeUnits,
+  torque: torqueUnits,
+  typography: typographyUnits,
+  vacuum: vacuumUnits,
+  volume: volumeUnits,
+  "volume-flow-rate": volumeFlowRateUnits,
+  weight: weightUnits,
+};

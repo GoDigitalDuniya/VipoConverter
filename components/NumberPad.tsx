@@ -1,6 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import useCalculatorStore from "../src/store/useCalculatorStore";
 import { useTheme } from "../theme/ThemeProvider";
 
 type NumberPadKey = {
@@ -12,6 +14,7 @@ type NumberPadKey = {
 
 type NumberPadProps = {
   onKeyPress: (key: string) => void;
+  inputValue?: string;
 };
 
 const KEYS: NumberPadKey[] = [
@@ -33,8 +36,10 @@ const KEYS: NumberPadKey[] = [
   { value: "delete", icon: "backspace", variant: "delete" },
 ];
 
-export default function NumberPad({ onKeyPress }: NumberPadProps) {
+export default function NumberPad({ onKeyPress, inputValue = "0" }: NumberPadProps) {
   const theme = useTheme();
+  const router = useRouter();
+  const setCalculatorValue = useCalculatorStore((state) => state.setValue);
   const { height: screenHeight } = useWindowDimensions();
 
   const padHeight = Math.round(screenHeight * 0.34);
@@ -57,7 +62,15 @@ export default function NumberPad({ onKeyPress }: NumberPadProps) {
           return (
             <Pressable
               key={key.value}
-              onPress={() => onKeyPress(key.value)}
+              onPress={() => {
+                if (key.value === "calc") {
+                  setCalculatorValue(inputValue || "0");
+                  router.push("/calculator");
+                  return;
+                }
+
+                onKeyPress(key.value);
+              }}
               android_ripple={{ color: "#00000014" }}
               style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
             >

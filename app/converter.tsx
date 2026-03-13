@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import FavoriteToast from '../components/FavoriteToast';
+import SimpleToast from '../components/SimpleToast';
 import useFavoritesStore from '../store/useFavoritesStore';
 import useSettingsStore from '../store/useSettingsStore';
 import { useTheme } from '../theme/ThemeProvider';
@@ -98,7 +99,7 @@ function SearchHeader({
           underlineColorAndroid="transparent"
         />
       </View>
-
+    
       <TouchableOpacity style={styles.iconButton} onPress={onHistoryPress}>
         <MaterialCommunityIcons name="history" size={32} color={t.colors.primary} />
       </TouchableOpacity>
@@ -193,6 +194,7 @@ export default function ConverterScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastCategory, setToastCategory] = useState('');
   const [toastAction, setToastAction] = useState<'added' | 'removed'>('added');
+  const [emptyFavoriteToastVisible, setEmptyFavoriteToastVisible] = useState(false);
 
   const keyExtractor = useCallback((item: CategoryItem) => item.key, []);
 
@@ -203,8 +205,8 @@ export default function ConverterScreen() {
   }, [router]);
 
   const onHistoryPress = useCallback(() => {
-    console.log('History pressed');
-  }, []);
+    router.push('/history' as any);
+  }, [router]);
 
   const handleToggleFavorite = useCallback((key: string, added: boolean) => {
     const cat = ALL_CATEGORIES.find((c) => c.key === key);
@@ -214,8 +216,13 @@ export default function ConverterScreen() {
   }, []);
 
   const onStarPress = useCallback(() => {
+    if (!showOnlyFavorites && categoryFavorites.length === 0) {
+      setEmptyFavoriteToastVisible(true);
+      return;
+    }
+
     setShowOnlyFavorites((s) => !s);
-  }, []);
+  }, [categoryFavorites.length, showOnlyFavorites]);
 
   const renderItem = useCallback(({ item }: ListRenderItemInfo<CategoryItem>) => {
     return <CategoryCard item={item} layout={dashboardStyle} onPress={onPressCategory} onToggleFavorite={handleToggleFavorite} t={t} />;
@@ -247,6 +254,11 @@ export default function ConverterScreen() {
       )}
 
       <FavoriteToast visible={toastVisible} categoryName={toastCategory} action={toastAction} onDismiss={() => setToastVisible(false)} />
+      <SimpleToast
+        visible={emptyFavoriteToastVisible}
+        message="You haven't starred any categories yet."
+        onDismiss={() => setEmptyFavoriteToastVisible(false)}
+      />
     </View>
   );
 }

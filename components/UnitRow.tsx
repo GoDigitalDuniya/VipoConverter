@@ -108,9 +108,14 @@ export default React.memo(function UnitRow({
           <View style={styles.rightColumnWrapper}>
             {(item.value !== undefined && item.value !== null) && (
               <>
-                <Text style={styles.value}>
-                  {formatValue(item.value)} {item.shortLabel}
-                </Text>
+                <View style={styles.rightValueContainer}>
+                  <Text style={styles.value}>
+                    {formatValue(item.value)}
+                  </Text>
+                  <Text style={styles.valueUnit}>
+                    {item.shortLabel}
+                  </Text>
+                </View>
                 <Text style={styles.name}>
                   {item.name}
                 </Text>
@@ -161,7 +166,7 @@ const createStyles = (theme: any, selected?: boolean) =>
     },
 
     inlineValue: {
-      fontSize: 20,
+      fontSize: 16,
       fontWeight: '800',
       color: theme.colors.primary,
       marginRight: 4,
@@ -169,8 +174,8 @@ const createStyles = (theme: any, selected?: boolean) =>
     },
 
     inlineUnit: {
-      fontSize: 16,
-      fontWeight: '700',
+      fontSize: 12,
+      fontWeight: '900',
       color: theme.colors.primary,
       textAlign: 'right',
     },
@@ -181,16 +186,17 @@ const createStyles = (theme: any, selected?: boolean) =>
     },
 
     shortLabel: {
-      fontSize: 17,
-      fontWeight: '700',
-      color: theme.colors.text,
+      fontSize: 12,
+      fontWeight: 'bold',
+      opacity: 0.5,
+      color: theme.colors.textSecondary,
       textAlign: 'right',
     },
 
     name: {
       fontSize: 13,
       marginTop: 2,
-      color: theme.colors.textSecondary,
+      color: theme.colors.text,
       textAlign: 'right',
     },
 
@@ -202,10 +208,26 @@ const createStyles = (theme: any, selected?: boolean) =>
       width: '100%',
     },
 
+    rightValueContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'flex-end',
+    },
+
     value: {
-      fontSize: 18,
-      fontWeight: '700',
+      fontSize: 16,
+      fontWeight: '800',
       color: selected ? theme.colors.primary : theme.colors.text,
+      opacity: selected ? 1 : 0.5,   // slightly dim non-selected values
+      marginRight: 4,
+      textAlign: 'right',
+    },
+
+    valueUnit: {
+      fontSize: 12,
+      fontWeight: selected ? '900' : 'bold',       // matches inlineUnit vs shortLabel weight
+      color: selected ? theme.colors.primary : theme.colors.textSecondary, // matches shortLabel color
+      opacity: selected ? 1 : 0.5,                 // matches shortLabel opacity exactly
       textAlign: 'right',
     },
   });

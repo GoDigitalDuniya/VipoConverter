@@ -1,11 +1,18 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useEffect, useRef, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import useUnitSearchStore from '../src/store/useUnitSearchStore';
 import useUnitFavoritesStore from '../store/useUnitFavoritesStore';
 import { useTheme } from '../theme/ThemeProvider';
 
-export default function CategoryTopBar() {
+type Props = {
+    onFavoritesPress?: () => void;
+};
+
+export default function CategoryTopBar({ onFavoritesPress }: Props) {
+    const router = useRouter();
+    const { category } = useLocalSearchParams<{ category: string }>();
     const theme = useTheme();
     const favoritesFilterEnabled = useUnitFavoritesStore((state) => state.favoritesFilterEnabled);
     const toggleFavoritesFilter = useUnitFavoritesStore((state) => state.toggleFavoritesFilter);
@@ -20,6 +27,18 @@ export default function CategoryTopBar() {
     const [searchSide, setSearchSide] = useState<'left' | 'right' | null>(null);
 
     const anim = useRef(new Animated.Value(0)).current;
+    const searchInputRef = useRef<TextInput>(null);
+
+    const focusSearchInput = useCallback(() => {
+        requestAnimationFrame(() => {
+            searchInputRef.current?.focus();
+
+            // Retry after the transition to ensure keyboard reopens on repeated entry.
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 240);
+        });
+    }, []);
 
     useEffect(() => {
         Animated.timing(anim, {
@@ -29,18 +48,29 @@ export default function CategoryTopBar() {
         }).start();
     }, [searchMode, anim]);
 
+    useEffect(() => {
+        if (!searchMode || !searchSide) return;
+
+        focusSearchInput();
+
+        return undefined;
+    }, [searchMode, searchSide, focusSearchInput]);
+
     const onPressLeftSearch = () => {
         setSearchSide('left');
         setSearchMode(true);
+        focusSearchInput();
     };
 
     const onPressRightSearch = () => {
         setSearchSide('right');
         setSearchMode(true);
+        focusSearchInput();
     };
 
     const exitSearch = (clear = false) => {
         setSearchMode(false);
+        searchInputRef.current?.blur();
         const activeSide = searchSide;
         setSearchSide(null);
         if (clear) {
@@ -70,7 +100,7 @@ export default function CategoryTopBar() {
             <MaterialCommunityIcons name="magnify" size={28} color={theme.colors.text} />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={toggleFavoritesFilter} style={styles.iconTouch} accessibilityLabel="Favorites">
+            <TouchableOpacity onPress={onFavoritesPress ?? toggleFavoritesFilter} style={styles.iconTouch} accessibilityLabel="Favorites">
             <MaterialCommunityIcons
               name={favoritesFilterEnabled ? 'star' : 'star-outline'}
               size={28}
@@ -78,7 +108,13 @@ export default function CategoryTopBar() {
             />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.iconTouch} accessibilityLabel="History">
+            <TouchableOpacity
+            style={styles.iconTouch}
+            accessibilityLabel="History"
+            onPress={() => {
+                if (category) router.push(`/history/${category}` as any);
+            }}
+            >
             <MaterialCommunityIcons name="history" size={28} color={theme.colors.text} />
             </TouchableOpacity>
 
@@ -95,6 +131,7 @@ export default function CategoryTopBar() {
                         <MaterialCommunityIcons name="magnify" size={20} color={theme.colors.text} style={[styles.searchIcon, searchSide === 'right' ? { transform: [{ scaleX: -1 }] } : undefined]} />
 
                         <TextInput
+                        ref={searchInputRef}
                         placeholder="Search"
                         placeholderTextColor={theme.colors.textSecondary}
                         value={currentSearchText}

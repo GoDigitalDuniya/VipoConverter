@@ -1,11 +1,11 @@
-import { UnitDefinition } from '../conversions/types';
+import { UnitDefinition } from "../conversion/types/unit";
 
 /**
  * Represents a conversion unit with its properties and multiplier.
  * Re-exported from conversion engine for UI layer convenience.
  */
 export type Unit = UnitDefinition & {
-	name?: string;
+  name?: string;
 };
 
 /**

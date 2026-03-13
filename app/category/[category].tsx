@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -18,14 +19,19 @@ import {
   View
 } from "react-native";
 import CategoryTopBar from "../../components/CategoryTopBar";
+import FavoriteToast from "../../components/FavoriteToast";
 import NumberPad from "../../components/NumberPad";
+import SimpleToast from "../../components/SimpleToast";
 import UnitRow from "../../components/UnitRow";
 import { ROW_HEIGHT } from "../../src/constants/layout";
-import { getUnitsForCategory } from "../../src/conversions/getUnitsForCategory";
+import { CATEGORY_REGISTRY } from "../../src/conversion/registry/categoryRegistry";
 import { useConversionValues } from "../../src/hooks/useConversionValues";
 import { useNumberPad } from "../../src/hooks/useNumberPad";
 import { useUnitSelection } from "../../src/hooks/useUnitSelection";
 import { useWheelScroll } from "../../src/hooks/useWheelScroll";
+import useCalculatorStore from "../../src/store/useCalculatorStore";
+import useConversionHistoryStore from "../../src/store/useConversionHistoryStore";
+import useHistoryRestoreStore from "../../src/store/useHistoryRestoreStore";
 import useUnitSearchStore from "../../src/store/useUnitSearchStore";
 import { Unit } from "../../src/types/unit";
 import { prettyName } from "../../src/utils/stringUtils";
@@ -33,15 +39,41 @@ import useUnitFavoritesStore from "../../store/useUnitFavoritesStore";
 import { useTheme } from "../../theme/ThemeProvider";
 import { TitleContext } from "../_layout";
 
+function startOfDay(timestamp: number): number {
+  const d = new Date(timestamp);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function isToday(timestamp: number): boolean {
+  return startOfDay(timestamp) === startOfDay(Date.now());
+}
+
+const HISTORY_TYPING_DEBOUNCE_MS = 450;
+
 export default function CategoryScreen() {
   const { category } = useLocalSearchParams<{ category: string }>();
+  const categoryKey = category || "data";
   const display = prettyName(category);
   const { setTitle } = useContext(TitleContext);
   const navigation = useNavigation();
   const theme = useTheme();
+  const calculatorValue = useCalculatorStore((state) => state.value);
+  const addHistory = useConversionHistoryStore((state) => state.addHistory);
+  const pendingRestore = useHistoryRestoreStore((state) => state.pendingRestore);
+  const clearPendingRestore = useHistoryRestoreStore((state) => state.clearPendingRestore);
+  const lastHistorySignatureRef = useRef<string | null>(null);
+  const didInitHistoryRef = useRef(false);
+  const restoreInProgressRef = useRef(false);
+  const shouldDebounceHistoryRef = useRef(false);
+  const typingHistoryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restoreTargetRef = useRef<
+    { inputValue: string; inputUnitKey: string; outputUnitKey: string } | null
+  >(null);
 
   const unitFavorites = useUnitFavoritesStore((state) => state.unitFavorites);
   const favoritesFilterEnabled = useUnitFavoritesStore((state) => state.favoritesFilterEnabled);
+  const toggleFavoritesFilter = useUnitFavoritesStore((state) => state.toggleFavoritesFilter);
   const toggleUnitFavorite = useUnitFavoritesStore((state) => state.toggleUnitFavorite);
   const leftSearch = useUnitSearchStore((state) => state.leftSearch);
   const rightSearch = useUnitSearchStore((state) => state.rightSearch);
@@ -49,6 +81,10 @@ export default function CategoryScreen() {
   const clearRightSearch = useUnitSearchStore((state) => state.clearRightSearch);
 
   const [containerHeight, setContainerHeight] = useState(0);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastUnitName, setToastUnitName] = useState("");
+  const [toastAction, setToastAction] = useState<"added" | "removed">("added");
+  const [emptyFavoriteToastVisible, setEmptyFavoriteToastVisible] = useState(false);
 
   useEffect(() => {
     setTitle(display);
@@ -59,7 +95,9 @@ export default function CategoryScreen() {
 
   /* ---------------- Units ---------------- */
 
-  const UNITS = useMemo(() => getUnitsForCategory(category || "data"), [category]);
+  const categoryUnits = useMemo(() => CATEGORY_REGISTRY[categoryKey], [categoryKey]);
+  const UNITS: Unit[] = categoryUnits ?? [];
+  const isSupportedCategory = !!categoryUnits;
 
   const visibleUnits = useMemo(() => {
     if (!favoritesFilterEnabled) return UNITS;
@@ -74,7 +112,7 @@ export default function CategoryScreen() {
     const displayName = (unit.name ?? unit.key).toLowerCase();
 
     return (
-      unit.short.toLowerCase().includes(q) ||
+      unit.label.toLowerCase().includes(q) ||
       displayName.includes(q)
     );
   }, []);
@@ -127,10 +165,57 @@ export default function CategoryScreen() {
     isNumberPadVisible,
     showNumberPad,
     hideNumberPad,
-    handleNumberPadKeyPress,
+    handleNumberPadKeyPress: rawHandleNumberPadKeyPress,
   } = useNumberPad({
     onSwapUnits: swapUnits,
   });
+
+  const handleNumberPadKeyPress = useCallback(
+    (key: string) => {
+      const isTypingKey = key === "clear" || key === "delete" || key === "." || /^\d+$/.test(key);
+      shouldDebounceHistoryRef.current = isTypingKey;
+      rawHandleNumberPadKeyPress(key);
+    },
+    [rawHandleNumberPadKeyPress]
+  );
+
+  useEffect(() => {
+    if (calculatorValue) {
+      setInputValue(calculatorValue);
+    }
+  }, [calculatorValue, setInputValue]);
+
+  useEffect(() => {
+    if (!pendingRestore) return;
+
+    const currentCategory = category || "data";
+    if (pendingRestore.category !== currentCategory) return;
+
+    const shouldSkipRestoreLog = isToday(pendingRestore.timestamp);
+    if (shouldSkipRestoreLog) {
+      restoreInProgressRef.current = true;
+      restoreTargetRef.current = {
+        inputValue: pendingRestore.inputValue || "0",
+        inputUnitKey: pendingRestore.inputUnitKey,
+        outputUnitKey: pendingRestore.outputUnitKey,
+      };
+    } else {
+      restoreInProgressRef.current = false;
+      restoreTargetRef.current = null;
+    }
+
+    setInputValue(pendingRestore.inputValue || "0");
+    setInputUnit(pendingRestore.inputUnitKey);
+    setOutputUnit(pendingRestore.outputUnitKey);
+    clearPendingRestore();
+  }, [
+    category,
+    clearPendingRestore,
+    pendingRestore,
+    setInputUnit,
+    setInputValue,
+    setOutputUnit,
+  ]);
 
   // Recenter lists when container height or NumberPad visibility changes
   useEffect(() => {
@@ -170,10 +255,105 @@ export default function CategoryScreen() {
   /* ---------------- Conversion ---------------- */
 
   const convertedValues = useConversionValues({
+    category: categoryKey,
     inputValue,
     inputUnit,
     units: UNITS,
   });
+
+  useEffect(() => {
+    return () => {
+      if (typingHistoryTimeoutRef.current) {
+        clearTimeout(typingHistoryTimeoutRef.current);
+        typingHistoryTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const inputUnitDef = UNITS.find((unit) => unit.key === inputUnit);
+    const outputUnitDef = UNITS.find((unit) => unit.key === outputUnit);
+    if (!inputUnitDef || !outputUnitDef) return;
+
+    const outputValue = convertedValues[outputUnit] ?? "0";
+    const signature = `${category}|${inputValue}|${inputUnit}|${outputUnit}|${outputValue}`;
+
+    if (!didInitHistoryRef.current) {
+      didInitHistoryRef.current = true;
+      lastHistorySignatureRef.current = signature;
+      return;
+    }
+
+    if (signature === lastHistorySignatureRef.current) return;
+
+    if (!inputValue || Number(inputValue) === 0) {
+      lastHistorySignatureRef.current = signature;
+      return;
+    }
+
+    if (!Number.isFinite(Number(outputValue))) {
+      lastHistorySignatureRef.current = signature;
+      return;
+    }
+
+    if (restoreInProgressRef.current) {
+      const target = restoreTargetRef.current;
+      const atRestoreTarget =
+        !!target &&
+        target.inputValue === inputValue &&
+        target.inputUnitKey === inputUnit &&
+        target.outputUnitKey === outputUnit;
+
+      lastHistorySignatureRef.current = signature;
+
+      if (atRestoreTarget) {
+        restoreInProgressRef.current = false;
+        restoreTargetRef.current = null;
+      }
+
+      return;
+    }
+
+    lastHistorySignatureRef.current = signature;
+
+    const createHistoryEntry = () =>
+      addHistory({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      category: category || "data",
+      inputValue,
+      inputUnitKey: inputUnit,
+      inputUnitLabel: inputUnitDef.label,
+      outputValue,
+      outputUnitKey: outputUnit,
+      outputUnitLabel: outputUnitDef.label,
+      timestamp: Date.now(),
+    });
+
+    if (typingHistoryTimeoutRef.current) {
+      clearTimeout(typingHistoryTimeoutRef.current);
+      typingHistoryTimeoutRef.current = null;
+    }
+
+    if (shouldDebounceHistoryRef.current) {
+      typingHistoryTimeoutRef.current = setTimeout(() => {
+        // Skip stale log attempts when input changed again during debounce.
+        if (lastHistorySignatureRef.current !== signature) return;
+        createHistoryEntry();
+        shouldDebounceHistoryRef.current = false;
+      }, HISTORY_TYPING_DEBOUNCE_MS);
+      return;
+    }
+
+    createHistoryEntry();
+  }, [
+    UNITS,
+    addHistory,
+    category,
+    convertedValues,
+    inputUnit,
+    inputValue,
+    outputUnit,
+  ]);
 
   /* ---------------- Center Padding ---------------- */
 
@@ -184,13 +364,34 @@ export default function CategoryScreen() {
 
   /* ---------------- Render ---------------- */
 
+  const handleToggleUnitFavorite = useCallback(
+    (itemKey: string) => {
+      const wasFavorite = unitFavorites.includes(itemKey);
+      const unit = UNITS.find((entry) => entry.key === itemKey);
+      toggleUnitFavorite(itemKey);
+      setToastUnitName(unit?.label ?? itemKey);
+      setToastAction(wasFavorite ? "removed" : "added");
+      setToastVisible(true);
+    },
+    [UNITS, toggleUnitFavorite, unitFavorites]
+  );
+
+  const handleFavoritesFilterPress = useCallback(() => {
+    if (!favoritesFilterEnabled && unitFavorites.length === 0) {
+      setEmptyFavoriteToastVisible(true);
+      return;
+    }
+
+    toggleFavoritesFilter();
+  }, [favoritesFilterEnabled, toggleFavoritesFilter, unitFavorites.length]);
+
   const renderLeft = useCallback(
     ({ item }: ListRenderItemInfo<Unit>) => (
       <UnitRow
         item={{
           key: item.key,
-          shortLabel: item.short,
-          name: item.short,
+          shortLabel: item.label,
+          name: item.label,
           value: item.key === inputUnit ? inputValue : 0,
           isFavorite: unitFavorites.includes(item.key),
         }}
@@ -198,10 +399,10 @@ export default function CategoryScreen() {
         showStar
         isLeftColumn
         onValuePress={showNumberPad}
-        onStarPress={toggleUnitFavorite}
+        onStarPress={handleToggleUnitFavorite}
       />
     ),
-    [inputUnit, inputValue, showNumberPad, toggleUnitFavorite, unitFavorites]
+    [handleToggleUnitFavorite, inputUnit, inputValue, showNumberPad, unitFavorites]
   );
 
   const renderRight = useCallback(
@@ -209,8 +410,8 @@ export default function CategoryScreen() {
       <UnitRow
         item={{
           key: item.key,
-          shortLabel: item.short,
-          name: item.short,
+          shortLabel: item.label,
+          name: item.label,
           value: convertedValues[item.key],
           isFavorite: unitFavorites.includes(item.key),
         }}
@@ -223,7 +424,18 @@ export default function CategoryScreen() {
 
   return (
     <View style={styles.container}>
-      <CategoryTopBar />
+      <CategoryTopBar onFavoritesPress={handleFavoritesFilterPress} />
+
+      {!isSupportedCategory && (
+        <View style={styles.unsupportedContainer}>
+          <Text style={styles.unsupportedText}>
+            This converter will be available in a future update.
+          </Text>
+        </View>
+      )}
+
+      {isSupportedCategory && (
+      <>
 
       <View
         style={styles.columns}
@@ -274,7 +486,7 @@ export default function CategoryScreen() {
       </View>
 
       {isNumberPadVisible && (
-        <NumberPad onKeyPress={handleNumberPadKeyPress} />
+        <NumberPad onKeyPress={handleNumberPadKeyPress} inputValue={inputValue} />
       )}
 
       {!isNumberPadVisible && (
@@ -285,6 +497,20 @@ export default function CategoryScreen() {
           <Text style={styles.keyboardText}>Show Keyboard</Text>
         </TouchableOpacity>
       )}
+      </>
+      )}
+
+      <FavoriteToast
+        visible={toastVisible}
+        categoryName={toastUnitName}
+        action={toastAction}
+        onDismiss={() => setToastVisible(false)}
+      />
+      <SimpleToast
+        visible={emptyFavoriteToastVisible}
+        message="You haven't starred any units yet."
+        onDismiss={() => setEmptyFavoriteToastVisible(false)}
+      />
     </View>
   );
 }
@@ -326,5 +552,16 @@ const createStyles = (theme: any) =>
     keyboardText: {
       color: theme.colors.primary,
       fontWeight: "600",
+    },
+    unsupportedContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 24,
+    },
+    unsupportedText: {
+      color: theme.colors.textSecondary,
+      fontSize: 16,
+      textAlign: "center",
     },
   });

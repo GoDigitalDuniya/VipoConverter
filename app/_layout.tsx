@@ -11,10 +11,12 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import useConversionHistoryStore from "../src/store/useConversionHistoryStore";
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemeProvider, useTheme } from "../theme/ThemeProvider";
 
-type RouteName = "converter" | "hardness" | "videos" | "contact" | "settings";
+type RouteName = "converter" | "hardness" | "videos" | "contact" | "settings" | "calculator" | "history";
+type MenuRouteName = "converter" | "hardness" | "videos" | "contact";
 
 const ROUTE_META: Record<RouteName, { title: string; label?: string }> = {
   converter: { title: "Converter", label: "Converter" },
@@ -22,6 +24,8 @@ const ROUTE_META: Record<RouteName, { title: string; label?: string }> = {
   videos: { title: "Videos", label: "Videos" },
   contact: { title: "Contact", label: "Contact" },
   settings: { title: "Settings & Privacy", label: "Settings" },
+  calculator: { title: "Calculator" },
+  history: { title: "History" },
 };
 
 function getActiveRouteName(segments: string[]) {
@@ -50,13 +54,15 @@ function LayoutContent(): JSX.Element {
   const [overrideTitle, setOverrideTitle] = useState<string | undefined>(undefined);
   const insets = useSafeAreaInsets();
   const t = useTheme();
+  const clearHistory = useConversionHistoryStore((state) => state.clearHistory);
   const backgroundColor = t.colors.background;
   const statusBarStyle = t.statusBarStyle;
+  const isHistoryRoute = segments?.[0] === "history";
 
   const title = useMemo(() => overrideTitle ?? getActiveRouteName(segments), [segments, overrideTitle]);
   const activeKey: RouteName = (segments && segments.length > 0 ? (segments[segments.length - 1] as RouteName) : 'converter');
 
-  const menuItems: { key: RouteName; label: string }[] = [
+  const menuItems: { key: MenuRouteName; label: string }[] = [
     { key: "converter", label: ROUTE_META.converter.label ?? ROUTE_META.converter.title },
     { key: "hardness", label: ROUTE_META.hardness.label ?? ROUTE_META.hardness.title },
     { key: "videos", label: ROUTE_META.videos.label ?? ROUTE_META.videos.title },
@@ -83,7 +89,17 @@ function LayoutContent(): JSX.Element {
         </View>
 
         <View style={styles.right}>
-          {activeKey !== 'settings' && (
+          {isHistoryRoute && (
+            <TouchableOpacity
+              accessibilityLabel="Clear history"
+              onPress={clearHistory}
+              style={styles.iconButton}
+            >
+              <Ionicons name="trash-outline" size={30} color={t.colors.primary} />
+            </TouchableOpacity>
+          )}
+
+          {!isHistoryRoute && activeKey !== 'settings' && (
             <TouchableOpacity
               accessibilityLabel="Open settings"
               onPress={() => router.push('/settings')}
