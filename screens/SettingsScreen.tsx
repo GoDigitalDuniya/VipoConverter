@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import useSettingsStore from '../store/useSettingsStore';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -35,8 +34,8 @@ export default function SettingsScreen() {
   const onToggleDashboard = () => setDashboardStyle(dashboardStyle === 'grid' ? 'list' : 'grid');
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: t.colors.background, paddingTop: 0, paddingBottom: 0 }]}>
-      <View style={[styles.section] }>
+    <View style={[styles.container, { backgroundColor: t.colors.background }]}>
+      <View style={[styles.section]}>
         <SettingsRow
           label="Theme"
           value={themeMode === 'dark' ? 'Dark' : 'Light'}
@@ -133,7 +132,7 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 

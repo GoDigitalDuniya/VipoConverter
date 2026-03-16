@@ -24,7 +24,9 @@ import NumberPad from "../../components/NumberPad";
 import SimpleToast from "../../components/SimpleToast";
 import UnitRow from "../../components/UnitRow";
 import { ROW_HEIGHT } from "../../src/constants/layout";
+import { convert } from "../../src/conversion/engine/convert";
 import { CATEGORY_REGISTRY } from "../../src/conversion/registry/categoryRegistry";
+import { getCurrencyUnits } from "../../src/conversion/categories/currency";
 import { useConversionValues } from "../../src/hooks/useConversionValues";
 import { useNumberPad } from "../../src/hooks/useNumberPad";
 import { useUnitSelection } from "../../src/hooks/useUnitSelection";
@@ -33,12 +35,12 @@ import useCalculatorStore from "../../src/store/useCalculatorStore";
 import useConversionHistoryStore from "../../src/store/useConversionHistoryStore";
 import useHistoryRestoreStore from "../../src/store/useHistoryRestoreStore";
 import useUnitSearchStore from "../../src/store/useUnitSearchStore";
+import useCurrencyRatesStore from "../../src/store/useCurrencyRatesStore";
 import { Unit } from "../../src/types/unit";
 import { prettyName } from "../../src/utils/stringUtils";
 import useUnitFavoritesStore from "../../store/useUnitFavoritesStore";
 import { useTheme } from "../../theme/ThemeProvider";
 import { TitleContext } from "../_layout";
-import { convert } from "../../src/conversion/engine/convert";
 
 function startOfDay(timestamp: number): number {
   const d = new Date(timestamp);
@@ -81,6 +83,8 @@ export default function CategoryScreen() {
   const clearLeftSearch = useUnitSearchStore((state) => state.clearLeftSearch);
   const clearRightSearch = useUnitSearchStore((state) => state.clearRightSearch);
 
+  const fetchCurrencyRates = useCurrencyRatesStore((state) => state.fetchRates);
+
   const [containerHeight, setContainerHeight] = useState(0);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastUnitName, setToastUnitName] = useState("");
@@ -96,7 +100,15 @@ export default function CategoryScreen() {
 
   /* ---------------- Units ---------------- */
 
-  const categoryUnits = useMemo(() => CATEGORY_REGISTRY[categoryKey], [categoryKey]);
+  useEffect(() => {
+    fetchCurrencyRates();
+  }, [fetchCurrencyRates]);
+
+  const categoryUnits = useMemo(() => {
+    if (categoryKey === "currency") return getCurrencyUnits();
+    return CATEGORY_REGISTRY[categoryKey];
+  }, [categoryKey]);
+
   const UNITS: Unit[] = categoryUnits ?? [];
   const isSupportedCategory = !!categoryUnits;
 
@@ -465,6 +477,9 @@ export default function CategoryScreen() {
           }}
           snapToInterval={ROW_HEIGHT}
           decelerationRate="fast"
+          keyboardShouldPersistTaps="handled"
+          removeClippedSubviews
+          windowSize={7}
           onMomentumScrollEnd={handleScrollEndLeft}
           showsVerticalScrollIndicator={false}
         />
@@ -484,6 +499,9 @@ export default function CategoryScreen() {
           }}
           snapToInterval={ROW_HEIGHT}
           decelerationRate="fast"
+          keyboardShouldPersistTaps="handled"
+          removeClippedSubviews
+          windowSize={7}
           onMomentumScrollEnd={handleScrollEndRight}
           showsVerticalScrollIndicator={false}
         />
@@ -552,6 +570,9 @@ const createStyles = (theme: any) =>
       paddingVertical: 12,
       borderRadius: 12,
       elevation: 4,
+      minWidth: 160,
+      alignItems: "center",
+      justifyContent: "center",
     },
     keyboardText: {
       color: theme.colors.primary,

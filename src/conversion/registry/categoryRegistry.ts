@@ -1,7 +1,7 @@
 import { anglesUnits } from "../categories/angles";
 import { areaUnits } from "../categories/area";
 import { calorieUnits } from "../categories/calorie";
-import { currencyUnits } from "../categories/currency";
+import { getCurrencyUnits } from "../categories/currency";
 import { currentUnits } from "../categories/current";
 import { dataUnits } from "../categories/data";
 import { densityUnits } from "../categories/density";
@@ -13,7 +13,7 @@ import { forceUnits } from "../categories/force";
 import { frequencyUnits } from "../categories/frequency";
 import { fuelConsumptionUnits } from "../categories/fuelConsumption";
 import { illuminationUnits } from "../categories/illumination";
-import { kineticViscosityUnits } from "../categories/kineticViscosity";
+import { kinematicViscosityUnits } from "../categories/kinematicViscosity";
 import { momentOfInertiaUnits } from "../categories/momentOfInertia";
 import { numbersUnits } from "../categories/numbers";
 import { powerUnits } from "../categories/power";
@@ -37,7 +37,6 @@ export const CATEGORY_REGISTRY: Record<string, UnitDefinition[]> = {
   angles: anglesUnits,
   area: areaUnits,
   calorie: calorieUnits,
-  currency: currencyUnits,
   current: currentUnits,
   data: dataUnits,
   density: densityUnits,
@@ -49,8 +48,7 @@ export const CATEGORY_REGISTRY: Record<string, UnitDefinition[]> = {
   frequency: frequencyUnits,
   "fuel-consumption": fuelConsumptionUnits,
   illumination: illuminationUnits,
-  "kinematic-viscosity": kineticViscosityUnits,
-  "kinetic-viscosity": kineticViscosityUnits,
+  "kinematic-viscosity": kinematicViscosityUnits,
   "moment-of-inertia": momentOfInertiaUnits,
   numbers: numbersUnits,
   power: powerUnits,
@@ -69,3 +67,19 @@ export const CATEGORY_REGISTRY: Record<string, UnitDefinition[]> = {
   "volume-flow-rate": volumeFlowRateUnits,
   weight: weightUnits,
 };
+
+/**
+ * Returns the unit list for a given category.
+ *
+ * All categories use the static CATEGORY_REGISTRY.
+ * Currency is the sole exception — its units are computed fresh on every call
+ * because exchange rates are loaded asynchronously from AsyncStorage and the
+ * static registry would freeze a stale empty-rate snapshot at module init time.
+ */
+export function getUnitsForCategory(category: string): UnitDefinition[] {
+  if (category === "currency") {
+    return getCurrencyUnits();
+  }
+
+  return CATEGORY_REGISTRY[category] ?? [];
+}

@@ -3,6 +3,8 @@ import React, { useCallback, useMemo } from "react";
 import { FlatList, ListRenderItem, Pressable, StyleSheet, Text, View } from "react-native";
 import type { ConversionHistoryItem } from "../src/store/useConversionHistoryStore";
 import useHistoryRestoreStore from "../src/store/useHistoryRestoreStore";
+import { formatConversionNumber } from "../src/utils/formatConversionNumber";
+import useSettingsStore from "../store/useSettingsStore";
 import { useTheme } from "../theme/ThemeProvider";
 
 type SectionHeaderRow = {
@@ -29,7 +31,7 @@ function startOfDay(timestamp: number): number {
   return d.getTime();
 }
 
-function getSectionTitle(timestamp: number): "Today" | "Yesterday" | "Earlier" {
+function getSectionTitle(timestamp: number): string {
   const itemDay = startOfDay(timestamp);
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -38,7 +40,13 @@ function getSectionTitle(timestamp: number): "Today" | "Yesterday" | "Earlier" {
 
   if (itemDay === today) return "Today";
   if (itemDay === yesterday) return "Yesterday";
-  return "Earlier";
+
+  const date = new Date(timestamp);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = date.toLocaleString(undefined, { month: "long" });
+  const year = date.getFullYear();
+
+  return `${day} ${month},${year}`;
 }
 
 function formatTime(timestamp: number): string {
@@ -57,7 +65,11 @@ const HistoryItemRow = React.memo(function HistoryItemRow({
   onPress: (item: ConversionHistoryItem) => void;
 }) {
   const t = useTheme();
+  const digits = useSettingsStore((s) => s.numberOfDigits);
   const styles = useMemo(() => createStyles(t), [t]);
+
+  const inputKey = item.category === "currency" ? item.inputUnitKey.toUpperCase() : item.inputUnitKey;
+  const outputKey = item.category === "currency" ? item.outputUnitKey.toUpperCase() : item.outputUnitKey;
 
   return (
     <Pressable
@@ -74,11 +86,11 @@ const HistoryItemRow = React.memo(function HistoryItemRow({
       {/* Column 2 — Input */}
       <View style={styles.inputColumn}>
         <Text style={styles.valueText} numberOfLines={1}>
-          {item.inputValue} ({item.inputUnitLabel})
+          {formatConversionNumber(item.inputValue, digits)} ({inputKey})
         </Text>
 
         <Text style={styles.unitText} numberOfLines={1}>
-          {item.inputUnitKey}
+          {item.inputUnitLabel}
         </Text>
       </View>
 
@@ -90,22 +102,32 @@ const HistoryItemRow = React.memo(function HistoryItemRow({
       {/* Column 4 — Output */}
       <View style={styles.outputColumn}>
         <Text style={styles.valueText} numberOfLines={1}>
-          {item.outputValue} ({item.outputUnitLabel})
+          {formatConversionNumber(item.outputValue, digits)} ({outputKey})
         </Text>
 
         <Text style={styles.unitText} numberOfLines={1}>
-          {item.outputUnitKey}
+          {item.outputUnitLabel}
         </Text>
       </View>
     </Pressable>
   );
 })
 
+const PAGE_SIZE = 100;
+
 export default function ConversionHistoryList({ items }: Props) {
   const router = useRouter();
   const setPendingRestore = useHistoryRestoreStore((state) => state.setPendingRestore);
   const t = useTheme();
   const styles = useMemo(() => createStyles(t), [t]);
+
+  const [loadedCount, setLoadedCount] = React.useState(PAGE_SIZE);
+
+  const hasMore = items.length > loadedCount;
+  const visibleItems = React.useMemo(
+    () => items.slice(0, loadedCount),
+    [items, loadedCount]
+  );
 
   const handleHistoryItemPress = useCallback(
     (item: ConversionHistoryItem) => {
@@ -121,25 +143,52 @@ export default function ConversionHistoryList({ items }: Props) {
     [router, setPendingRestore]
   );
 
-  const rows = useMemo<RowData[]>(() => {
-    const grouped: Record<string, ConversionHistoryItem[]> = {
-      Today: [],
-      Yesterday: [],
-      Earlier: [],
-    };
+  React.useEffect(() => {
+    if (__DEV__) {
+      console.log(
+        `[History] total items=${items.length} loaded=${loadedCount} visible=${visibleItems.length} hasMore=${hasMore}`
+      );
+    }
+  }, [items.length, loadedCount, visibleItems.length, hasMore]);
 
-    for (const item of items) {
-      grouped[getSectionTitle(item.timestamp)].push(item);
+  const rows = useMemo<RowData[]>(() => {
+    const grouped: Record<string, ConversionHistoryItem[]> = {};
+
+    for (const item of visibleItems) {
+      const section = getSectionTitle(item.timestamp);
+      if (!grouped[section]) grouped[section] = [];
+      grouped[section].push(item);
     }
 
     const result: RowData[] = [];
-    (Object.keys(grouped) as Array<keyof typeof grouped>).forEach((section) => {
-      if (grouped[section].length === 0) return;
+
+    // Always show Today and Yesterday first (if present)
+    const orderedSections: string[] = [];
+    if (grouped["Today"]) orderedSections.push("Today");
+    if (grouped["Yesterday"]) orderedSections.push("Yesterday");
+
+    // Add remaining sections sorted by date descending
+    const otherSections = Object.keys(grouped).filter(
+      (k) => k !== "Today" && k !== "Yesterday"
+    );
+
+    otherSections
+      .sort((a, b) => {
+        const aDate = new Date(a.replace(",", ""));
+        const bDate = new Date(b.replace(",", ""));
+        return bDate.getTime() - aDate.getTime();
+      })
+      .forEach((section) => orderedSections.push(section));
+
+    for (const section of orderedSections) {
+      const itemsInSection = grouped[section];
+      if (!itemsInSection || itemsInSection.length === 0) continue;
+
       result.push({ type: "section", id: `section-${section}`, title: section });
-      grouped[section].forEach((entry) => {
+      itemsInSection.forEach((entry) => {
         result.push({ type: "item", id: entry.id, item: entry });
       });
-    });
+    }
 
     return result;
   }, [items]);
@@ -164,7 +213,20 @@ export default function ConversionHistoryList({ items }: Props) {
       initialNumToRender={20}
       maxToRenderPerBatch={20}
       windowSize={10}
+      keyboardShouldPersistTaps="handled"
+      removeClippedSubviews
       showsVerticalScrollIndicator={false}
+      onEndReached={() => {
+        if (!hasMore) return;
+        if (__DEV__) console.log("[History] loading more items", { loadedCount, total: items.length });
+        setLoadedCount((prev) => Math.min(prev + PAGE_SIZE, items.length));
+      }}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        !hasMore ? (
+          <Text style={styles.emptyText}>End of history</Text>
+        ) : null
+      }
       ListEmptyComponent={<Text style={styles.emptyText}>No history yet</Text>}
     />
   );

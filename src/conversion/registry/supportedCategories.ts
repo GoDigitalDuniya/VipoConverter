@@ -14,7 +14,7 @@ export const SUPPORTED_CATEGORIES = [
   "frequency",
   "fuel-consumption",
   "illumination",
-  "kinetic-viscosity",
+  "kinematic-viscosity",
   "moment-of-inertia",
   "numbers",
   "power",

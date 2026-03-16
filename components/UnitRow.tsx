@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -24,7 +24,11 @@ type Props = {
   onStarPress?: (key: string) => void;
 };
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const ROW_HEIGHT = 72;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatValue(v: number | string | undefined | null): string {
   if (v === undefined || v === null || v === '') return '0';
@@ -33,35 +37,121 @@ function formatValue(v: number | string | undefined | null): string {
   return String(v);
 }
 
-function UnitValueDisplay({
+// ─── Static styles (theme-independent) ───────────────────────────────────────
+// These never change regardless of theme or selection state.
+// Defined once at module level — never recreated.
+
+const staticStyles = StyleSheet.create({
+  unitRow: {
+    minHeight: ROW_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  favoriteButton: {
+    marginRight: 6,
+  },
+  unitContent: {
+    flex: 1,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  valueDisplay: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'flex-end',
+    marginBottom: 2,
+  },
+  valueNumber: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginRight: 4,
+    textAlign: 'right' as const,
+  },
+  valueSymbol: {
+    fontSize: 14,
+    fontWeight: 'bold' as const,
+    textAlign: 'right' as const,
+  },
+  unitLabelContainer: {
+    alignItems: 'flex-end' as const,
+  },
+  unitSymbol: {
+    fontSize: 14,
+    fontWeight: 'bold' as const,
+    textAlign: 'right' as const,
+  },
+  unitName: {
+    fontSize: 14,
+    marginTop: 2,
+    textAlign: 'right' as const,
+  },
+  unitLabelShiftDown: {
+    marginTop: 7,
+  },
+});
+
+// ─── Theme-aware style hook ───────────────────────────────────────────────────
+// Memoized per theme instance — only recomputes when theme changes (light↔dark).
+// All rows sharing the same theme share the same style object reference.
+
+function useThemedStyles(theme: ReturnType<typeof useTheme>) {
+  return useMemo(() => ({
+    borderColor:      theme.colors.border,
+    textColor:        theme.colors.text,
+    textSecondary:    theme.colors.textSecondary,
+    primaryColor:     theme.colors.primary,
+  }), [
+    theme.colors.border,
+    theme.colors.text,
+    theme.colors.textSecondary,
+    theme.colors.primary,
+  ]);
+}
+
+// ─── Sub-component ────────────────────────────────────────────────────────────
+
+const UnitValueDisplay = React.memo(function UnitValueDisplay({
   value,
   symbol,
   selected,
   isLeftColumn,
   onValuePress,
-  styles,
+  primaryColor,
+  textColor,
 }: {
   value: string;
   symbol: string;
   selected: boolean;
   isLeftColumn: boolean;
   onValuePress?: () => void;
-  styles: ReturnType<typeof createStyles>;
+  primaryColor: string;
+  textColor: string;
 }) {
+  const numberColor = selected ? primaryColor : textColor;
+  const symbolColor = selected ? primaryColor : textColor;
+  const symbolWeight = selected ? '900' : ('bold' as const);
 
   const display = (
-    <View style={styles.valueDisplay}>
-      <Text style={[styles.valueNumber, selected && styles.valueNumberSelected]}>
+    <View style={staticStyles.valueDisplay}>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={[staticStyles.valueNumber, { color: numberColor }]}
+      >
         {value}
       </Text>
-
-      <Text style={[styles.valueSymbol, selected && styles.valueSymbolSelected]}>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={[staticStyles.valueSymbol, { color: symbolColor, fontWeight: symbolWeight }]}
+      >
         {symbol}
       </Text>
     </View>
   );
 
-  // Left column allows tapping the value to open NumberPad
   if (isLeftColumn && onValuePress) {
     return (
       <TouchableOpacity activeOpacity={0.7} onPress={onValuePress}>
@@ -71,7 +161,7 @@ function UnitValueDisplay({
   }
 
   return display;
-}
+});
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -84,48 +174,37 @@ export default React.memo(function UnitRow({
   onValuePress,
   onStarPress,
 }: Props) {
-
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const themed = useThemedStyles(theme);
 
   const symbol = item.symbol ?? item.shortLabel;
-
   const hasValue = item.value !== undefined && item.value !== null;
-
-  const showValue =
-    isLeftColumn
-      ? selected && hasValue   // input column
-      : hasValue;              // output column
+  const showValue = isLeftColumn ? selected && hasValue : hasValue;
 
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={() => onPress?.(item.key)}
-      style={styles.unitRow}
+      style={[staticStyles.unitRow, {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: themed.borderColor,
+      }]}
     >
       {showStar && (
         <TouchableOpacity
-          style={styles.favoriteButton}
+          style={staticStyles.favoriteButton}
           onPress={() => onStarPress?.(item.key)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <MaterialCommunityIcons
             name={item.isFavorite ? 'star' : 'star-outline'}
             size={30}
-            color={
-              item.isFavorite
-                ? theme.colors.primary
-                : theme.colors.textSecondary
-            }
+            color={item.isFavorite ? themed.primaryColor : themed.textSecondary}
           />
         </TouchableOpacity>
       )}
 
-      {/* Unit Content */}
-
-      <View style={styles.unitContent}>
-
-        {/* Value Display */}
+      <View style={staticStyles.unitContent}>
 
         {showValue && (
           <UnitValueDisplay
@@ -134,106 +213,33 @@ export default React.memo(function UnitRow({
             selected={selected}
             isLeftColumn={isLeftColumn}
             onValuePress={onValuePress}
-            styles={styles}
+            primaryColor={themed.primaryColor}
+            textColor={themed.textColor}
           />
         )}
 
-        {/* Unit Labels */}
-
-        <View style={styles.unitLabelContainer}>
-
+        <View style={staticStyles.unitLabelContainer}>
           {!showValue && (
-            <Text style={styles.unitSymbol}>
+            <Text
+              numberOfLines={1}
+              style={[staticStyles.unitSymbol, { color: themed.textColor }]}
+            >
               {symbol}
             </Text>
           )}
-
-          <Text style={[styles.unitName, isLeftColumn && !showValue && styles.unitLabelShiftDown,]}>
+          <Text
+            numberOfLines={1}
+            style={[
+              staticStyles.unitName,
+              { color: themed.textSecondary },
+              isLeftColumn && !showValue && staticStyles.unitLabelShiftDown,
+            ]}
+          >
             {item.name}
           </Text>
-
         </View>
 
       </View>
-
     </TouchableOpacity>
   );
 });
-
-// ─── Styles (UNCHANGED) ───────────────────────────────────────────────────────
-
-const createStyles = (theme: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-
-    unitRow: {
-      height: ROW_HEIGHT,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 10,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.border,
-    },
-
-    favoriteButton: {
-      marginRight: 6,
-    },
-
-    unitContent: {
-      flex: 1,
-      alignItems: 'flex-end',
-      justifyContent: 'center',
-    },
-
-    valueDisplay: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      justifyContent: 'flex-end',
-      marginBottom: 2,
-    },
-
-    valueNumber: {
-      fontSize: 16,
-      fontWeight: '800',
-      color: theme.colors.text,
-      marginRight: 4,
-      textAlign: 'right',
-    },
-
-    valueNumberSelected: {
-      color: theme.colors.primary,
-    },
-
-    valueSymbol: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      textAlign: 'right',
-    },
-
-    valueSymbolSelected: {
-      fontWeight: '900',
-      color: theme.colors.primary,
-    },
-
-    unitLabelContainer: {
-      alignItems: 'flex-end',
-    },
-
-    unitSymbol: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      textAlign: 'right',
-    },
-
-    unitName: {
-      fontSize: 14,
-      marginTop: 2,
-      color: theme.colors.textSecondary,
-      textAlign: 'right',
-    },
-
-    unitLabelShiftDown: {
-      marginTop: 7,
-    },
-  });

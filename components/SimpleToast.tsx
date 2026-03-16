@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider";
 
 type Props = {
@@ -16,6 +17,7 @@ export default function SimpleToast({
   durationMs = 1400,
 }: Props) {
   const t = useTheme();
+  const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function SimpleToast({
   if (!visible) return null;
 
   return (
-    <View pointerEvents="none" style={styles.wrapper}>
+    <View pointerEvents="none" style={[styles.wrapper, { bottom: insets.bottom + 80 }] }>
       <Animated.View
         style={[
           styles.toast,

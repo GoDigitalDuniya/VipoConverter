@@ -4,7 +4,7 @@
 import { UnitDefinition } from "../types/unit";
 
 
-export const kineticViscosityUnits: UnitDefinition[] = [
+export const kinematicViscosityUnits: UnitDefinition[] = [
   // ── Kinematic Viscosity Units ──
   {
     key: "square-meter-per-second",

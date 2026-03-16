@@ -169,6 +169,10 @@ export default function CategoryTopBar({ onFavoritesPress }: Props) {
     iconTouch: {
         padding: 10,
         borderRadius: 24,
+        minWidth: 44,
+        minHeight: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     searchRow: {
         flexDirection: 'row',

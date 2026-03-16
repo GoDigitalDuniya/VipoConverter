@@ -1,18 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, useSegments } from "expo-router";
+import { StatusBar, StatusBarStyle } from "expo-status-bar";
 import type { JSX } from "react";
 import React, { createContext, useMemo, useState } from "react";
 import {
   Image,
   Modal,
-  StatusBar as RNStatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import useConversionHistoryStore from "../src/store/useConversionHistoryStore";
-import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import useCurrencyRatesStore from "../src/store/useCurrencyRatesStore";
 import { ThemeProvider, useTheme } from "../theme/ThemeProvider";
 
 type RouteName = "converter" | "hardness" | "videos" | "contact" | "settings" | "calculator" | "history";
@@ -47,17 +48,28 @@ export default function RootLayout(): JSX.Element {
   );
 }
 
+function toExpoStatusBarStyle(style: string | undefined): StatusBarStyle {
+  if (style === "dark-content") return "dark";
+  if (style === "light-content") return "light";
+  // fallback to expo-status-bar accepted values
+  return (style ?? "auto") as StatusBarStyle;
+}
+
 function LayoutContent(): JSX.Element {
   const segments = useSegments();
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
   const [overrideTitle, setOverrideTitle] = useState<string | undefined>(undefined);
-  const insets = useSafeAreaInsets();
   const t = useTheme();
   const clearHistory = useConversionHistoryStore((state) => state.clearHistory);
+  const fetchCurrencyRates = useCurrencyRatesStore((state) => state.fetchRates);
   const backgroundColor = t.colors.background;
-  const statusBarStyle = t.statusBarStyle;
+  const statusBarStyle = toExpoStatusBarStyle(t.statusBarStyle);
   const isHistoryRoute = segments?.[0] === "history";
+
+  React.useEffect(() => {
+    fetchCurrencyRates();
+  }, [fetchCurrencyRates]);
 
   const title = useMemo(() => overrideTitle ?? getActiveRouteName(segments), [segments, overrideTitle]);
   const activeKey: RouteName = (segments && segments.length > 0 ? (segments[segments.length - 1] as RouteName) : 'converter');
@@ -70,8 +82,8 @@ function LayoutContent(): JSX.Element {
   ];
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor }]} edges={["top", "right", "left"]}>
-      <RNStatusBar barStyle={statusBarStyle} backgroundColor={backgroundColor} translucent={false} />
+    <SafeAreaView style={[styles.safe, { backgroundColor }]} edges={["top", "right", "left", "bottom"]}>
+      <StatusBar style={statusBarStyle} backgroundColor={backgroundColor} translucent={false} />
 
       <View style={[styles.header, { backgroundColor, paddingTop: 0, borderBottomColor: t.colors.border }]}> 
         <View style={[styles.left, { width: 70 }]}> 
@@ -119,7 +131,7 @@ function LayoutContent(): JSX.Element {
         </View>
       </View>
 
-      <View style={{ flex: 1, backgroundColor, paddingBottom: insets.bottom }}>
+      <View style={{ flex: 1, backgroundColor }}>
         <TitleContext.Provider value={{ setTitle: setOverrideTitle }}>
           <Slot />
         </TitleContext.Provider>

@@ -42,7 +42,12 @@ export default function NumberPad({ onKeyPress, inputValue = "0" }: NumberPadPro
   const setCalculatorValue = useCalculatorStore((state) => state.setValue);
   const { height: screenHeight } = useWindowDimensions();
 
-  const padHeight = Math.round(screenHeight * 0.34);
+  const padHeight = Math.round(
+    Math.min(
+      Math.max(screenHeight * 0.32, 240),
+      screenHeight * 0.6
+    )
+  );
 
   const styles = useMemo(() => createStyles(theme, padHeight), [theme, padHeight]);
 
@@ -72,6 +77,7 @@ export default function NumberPad({ onKeyPress, inputValue = "0" }: NumberPadPro
                 onKeyPress(key.value);
               }}
               android_ripple={{ color: "#00000014" }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
             >
               <View style={styles.keyFace}>
@@ -103,9 +109,9 @@ const stylesTokens = {
   keyBackgroundLight: "#f4f4f4",
   keyBackgroundDark: "#454851",
   defaultText: "#121212",
-  clearColor: "#8f7c3c",
-  swapColor: "#50aeb9",
-  deleteColor: "#8f7c3c",
+  clearColor: "#8dc63f",
+  swapColor: "#8dc63f",
+  deleteColor: "#8dc63f",
 };
 
 const createStyles = (theme: ReturnType<typeof useTheme>, padHeight: number) =>
@@ -128,6 +134,8 @@ const createStyles = (theme: ReturnType<typeof useTheme>, padHeight: number) =>
     key: {
       width: "25%",
       height: "25%",
+      minHeight: 56,
+      minWidth: 56,
       padding: 5,
     },
     keyPressed: {

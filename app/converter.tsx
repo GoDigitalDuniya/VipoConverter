@@ -41,7 +41,7 @@ const ALL_CATEGORIES: CategoryItem[] = [
   { key: 'frequency', title: 'Frequency', icon: 'waveform' },
   { key: 'fuel-consumption', title: 'Fuel Consumption', icon: 'gas-station' },
   { key: 'illumination', title: 'Illumination', icon: 'lightbulb-on' },
-  { key: 'kinetic-viscosity', title: 'Kinetic viscosity', icon: 'water-outline' },
+  { key: 'kinematic-viscosity', title: 'Kinematic viscosity', icon: 'water-outline' },
   { key: 'moment-of-inertia', title: 'Moment of inertia', icon: 'rotate-orbit' },
   { key: 'numbers', title: 'Numbers', icon: 'numeric' },
   { key: 'power', title: 'Power', icon: 'flash-outline' },
@@ -248,7 +248,10 @@ export default function ConverterScreen() {
           numColumns={dashboardStyle === 'grid' ? 2 : 1}
           contentContainerStyle={styles.listContainer}
           columnWrapperStyle={dashboardStyle === 'grid' ? styles.columnWrapper : undefined}
+          keyboardShouldPersistTaps="handled"
           removeClippedSubviews={Platform.OS === 'android'}
+          windowSize={10}
+          initialNumToRender={16}
           showsVerticalScrollIndicator={false}
         />
       )}
@@ -288,8 +291,11 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   iconButton: {
-    paddingHorizontal: 4,
-    paddingVertical: 6,
+    padding: 10,
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   listContainer: {
     paddingHorizontal: 4,

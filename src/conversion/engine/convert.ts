@@ -1,4 +1,4 @@
-import { CATEGORY_REGISTRY } from "../registry/categoryRegistry";
+import { getUnitsForCategory } from "../registry/categoryRegistry";
 
 export function convert(
   category: string,
@@ -6,8 +6,8 @@ export function convert(
   fromKey: string,
   toKey: string
 ): number {
-  const units = CATEGORY_REGISTRY[category];
-  if (!units) return 0;
+  const units = getUnitsForCategory(category);
+  if (!units.length) return 0;
 
   const from = units.find((u) => u.key === fromKey);
   const to = units.find((u) => u.key === toKey);
