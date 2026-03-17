@@ -33,39 +33,68 @@ import { volumeFlowRateUnits } from "../categories/volumeFlowRate";
 import { weightUnits } from "../categories/weight";
 import { UnitDefinition } from "../types/unit";
 
-export const CATEGORY_REGISTRY: Record<string, UnitDefinition[]> = {
-  angles: anglesUnits,
-  area: areaUnits,
-  calorie: calorieUnits,
-  current: currentUnits,
-  data: dataUnits,
-  density: densityUnits,
-  distance: distanceUnits,
-  "dynamic-viscosity": dynamicViscosityUnits,
-  "electric-charge": electricChargeUnits,
-  energy: energyUnits,
-  force: forceUnits,
-  frequency: frequencyUnits,
-  "fuel-consumption": fuelConsumptionUnits,
-  illumination: illuminationUnits,
-  "kinematic-viscosity": kinematicViscosityUnits,
-  "moment-of-inertia": momentOfInertiaUnits,
-  numbers: numbersUnits,
-  power: powerUnits,
-  prefixes: prefixesUnits,
-  pressure: pressureUnits,
-  "radiation-absorbed": radiationAbsorbedUnits,
-  radioactivity: radioactivityUnits,
-  speed: speedUnits,
-  strength: strengthUnits,
-  temperature: temperatureUnits,
-  time: timeUnits,
-  torque: torqueUnits,
-  typography: typographyUnits,
-  vacuum: vacuumUnits,
-  volume: volumeUnits,
-  "volume-flow-rate": volumeFlowRateUnits,
-  weight: weightUnits,
+export type CategoryType =
+  | "standard"
+  | "timezone"
+  | "power_plug"
+  | "percentage"
+  | "pace"
+  | "number_system"
+  | "glucose"
+  | "mapping"
+  | "business"
+  | "calculator"
+  | "lookup_table";
+
+export interface CategoryEntry {
+  type: CategoryType;
+  units: UnitDefinition[];
+}
+
+export const CATEGORY_REGISTRY: Record<string, CategoryEntry> = {
+  angles: { type: "standard", units: anglesUnits },
+  area: { type: "standard", units: areaUnits },
+  'bmi-calculator': { type: "calculator", units: [] },
+  calorie: { type: "standard", units: calorieUnits },
+  currency: { type: "standard", units: [] },
+  current: { type: "standard", units: currentUnits },
+  data: { type: "standard", units: dataUnits },
+  density: { type: "standard", units: densityUnits },
+  distance: { type: "standard", units: distanceUnits },
+  "dynamic-viscosity": { type: "standard", units: dynamicViscosityUnits },
+  "electric-charge": { type: "standard", units: electricChargeUnits },
+  energy: { type: "standard", units: energyUnits },
+  force: { type: "standard", units: forceUnits },
+  frequency: { type: "standard", units: frequencyUnits },
+  "fuel-consumption": { type: "standard", units: fuelConsumptionUnits },
+  illumination: { type: "standard", units: illuminationUnits },
+  "kinematic-viscosity": { type: "standard", units: kinematicViscosityUnits },
+  "moment-of-inertia": { type: "standard", units: momentOfInertiaUnits },
+  numbers: { type: "standard", units: numbersUnits },
+  power: { type: "standard", units: powerUnits },
+  prefixes: { type: "standard", units: prefixesUnits },
+  pressure: { type: "standard", units: pressureUnits },
+  "radiation-absorbed": { type: "standard", units: radiationAbsorbedUnits },
+  radioactivity: { type: "standard", units: radioactivityUnits },
+  speed: { type: "standard", units: speedUnits },
+  strength: { type: "standard", units: strengthUnits },
+  temperature: { type: "standard", units: temperatureUnits },
+  time: { type: "standard", units: timeUnits },
+  torque: { type: "standard", units: torqueUnits },
+  typography: { type: "standard", units: typographyUnits },
+  vacuum: { type: "standard", units: vacuumUnits },
+  volume: { type: "standard", units: volumeUnits },
+  "volume-flow-rate": { type: "standard", units: volumeFlowRateUnits },
+  weight: { type: "standard", units: weightUnits },
+  percentage: { type: "percentage", units: [] },
+  pace: { type: "pace", units: [] },
+  timezone: { type: "timezone", units: [] },
+  power_plug: { type: "power_plug", units: [] },
+  clothing: { type: "mapping", units: [] },
+  shoe_size: { type: "mapping", units: [] },
+  hex_decimal_binary: { type: "number_system", units: [] },
+  glucose: { type: "glucose", units: [] },
+  business: { type: "business", units: [] },
 };
 
 /**
@@ -81,5 +110,21 @@ export function getUnitsForCategory(category: string): UnitDefinition[] {
     return getCurrencyUnits();
   }
 
-  return CATEGORY_REGISTRY[category] ?? [];
+  const entry = CATEGORY_REGISTRY[category];
+  return entry?.units ?? [];
+}
+
+/**
+ * Returns the category entry (with type and units) for a given category key.
+ */
+export function getCategoryEntry(category: string): CategoryEntry | undefined {
+  return CATEGORY_REGISTRY[category];
+}
+
+/**
+ * Returns the category type for a given category key.
+ */
+export function getCategoryType(category: string): CategoryType {
+  const entry = CATEGORY_REGISTRY[category];
+  return entry?.type ?? "standard";
 }
