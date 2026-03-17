@@ -2,14 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar, StatusBarStyle } from "expo-status-bar";
 import type { JSX } from "react";
-import React, { createContext, useMemo, useState } from "react";
+import React, { createContext, useMemo, useRef, useState } from "react";
 import {
   Image,
   Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import useConversionHistoryStore from "../src/store/useConversionHistoryStore";
@@ -51,7 +51,6 @@ export default function RootLayout(): JSX.Element {
 function toExpoStatusBarStyle(style: string | undefined): StatusBarStyle {
   if (style === "dark-content") return "dark";
   if (style === "light-content") return "light";
-  // fallback to expo-status-bar accepted values
   return (style ?? "auto") as StatusBarStyle;
 }
 
@@ -60,6 +59,9 @@ function LayoutContent(): JSX.Element {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
   const [overrideTitle, setOverrideTitle] = useState<string | undefined>(undefined);
+  // Store the measured position of the "more" button so we can anchor the menu to it
+  const [menuAnchor, setMenuAnchor] = useState<{ top: number; right: number } | null>(null);
+  const moreButtonRef = useRef<View>(null);
   const t = useTheme();
   const clearHistory = useConversionHistoryStore((state) => state.clearHistory);
   const fetchCurrencyRates = useCurrencyRatesStore((state) => state.fetchRates);
@@ -81,12 +83,29 @@ function LayoutContent(): JSX.Element {
     { key: "contact", label: ROUTE_META.contact.label ?? ROUTE_META.contact.title },
   ];
 
+  /**
+   * Measure the "more options" button's absolute screen position using
+   * `measureInWindow`. This is the correct approach for Modals on both iOS
+   * and Android because the Modal renders outside the normal view hierarchy —
+   * `onLayout` coordinates are relative to the parent and won't match.
+   */
+  const handleOpenMenu = () => {
+    if (moreButtonRef.current) {
+      moreButtonRef.current.measureInWindow((x, y, width, height) => {
+        setMenuAnchor({ top: y + height + 4, right: x + width });
+        setMenuVisible(true);
+      });
+    } else {
+      setMenuVisible(true);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor }]} edges={["top", "right", "left", "bottom"]}>
       <StatusBar style={statusBarStyle} backgroundColor={backgroundColor} translucent={false} />
 
-      <View style={[styles.header, { backgroundColor, paddingTop: 0, borderBottomColor: t.colors.border }]}> 
-        <View style={[styles.left, { width: 70 }]}> 
+      <View style={[styles.header, { backgroundColor, paddingTop: 0, borderBottomColor: t.colors.border }]}>
+        <View style={[styles.left, { width: 70 }]}>
           <Image
             source={require("../assets/images/app-logo.jpeg")}
             style={styles.logo}
@@ -95,9 +114,9 @@ function LayoutContent(): JSX.Element {
         </View>
 
         <View style={styles.center}>
-            <Text numberOfLines={1} style={[styles.title, { color: t.colors.text}]}>
+          <Text numberOfLines={1} style={[styles.title, { color: t.colors.text }]}>
             {title}
-            </Text>
+          </Text>
         </View>
 
         <View style={styles.right}>
@@ -121,9 +140,11 @@ function LayoutContent(): JSX.Element {
             </TouchableOpacity>
           )}
 
+          {/* Attach ref here so we can measure its exact screen position */}
           <TouchableOpacity
+            ref={moreButtonRef as any}
             accessibilityLabel="Open more menu"
-            onPress={() => setMenuVisible(true)}
+            onPress={handleOpenMenu}
             style={styles.iconButton}
           >
             <Ionicons name="ellipsis-vertical" size={22} color={t.colors.text} />
@@ -142,46 +163,91 @@ function LayoutContent(): JSX.Element {
         animationType="fade"
         transparent
         onRequestClose={() => setMenuVisible(false)}
+        // `statusBarTranslucent` ensures the modal covers the full screen on
+        // Android so our absolute coordinates (from measureInWindow) line up.
+        statusBarTranslucent
       >
+        {/* Full-screen invisible tap-away overlay */}
         <TouchableOpacity
-          style={[
-            styles.modalOverlay,
-            { backgroundColor: t.name === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.2)" },
-          ]}
+          style={StyleSheet.absoluteFillObject}
           activeOpacity={1}
           onPress={() => setMenuVisible(false)}
-        >
+        />
+
+        {/* Menu positioned absolutely at the measured anchor.
+            top  = just below the button
+            left = buttonRightFromLeft - MENU_WIDTH so the menu's right edge
+                   aligns with the button's right edge, clamped to avoid
+                   going off-screen on the left. */}
+        {menuAnchor && (
           <View
             style={[
               styles.menuContainer,
-              { backgroundColor: t.colors.surface, borderColor: t.colors.border, borderWidth: StyleSheet.hairlineWidth },
+              {
+                backgroundColor: t.colors.surface,
+                borderColor: t.colors.border,
+                borderWidth: StyleSheet.hairlineWidth,
+                top: menuAnchor.top,
+                left: Math.max(8, menuAnchor.right - MENU_WIDTH),
+              },
             ]}
           >
-            {menuItems.map((it) => (
-              <TouchableOpacity
-                key={it.key}
-                style={styles.menuItem}
-                onPress={() => {
-                  setMenuVisible(false);
-                  if (it.key !== activeKey) router.push(`/${it.key}` as const);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.menuText,
-                    { color: it.key === activeKey ? t.colors.primary : t.colors.text },
-                  ]}
-                >
-                  {it.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <MenuContent
+              menuItems={menuItems}
+              activeKey={activeKey}
+              t={t}
+              onClose={() => setMenuVisible(false)}
+              onNavigate={(key) => {
+                setMenuVisible(false);
+                if (key !== activeKey) router.push(`/${key}` as MenuRouteName);
+              }}
+            />
           </View>
-        </TouchableOpacity>
+        )}
       </Modal>
     </SafeAreaView>
   );
 }
+
+/**
+ * Separate component so we can use onLayout to get the menu's own width,
+ * which lets us right-align it precisely against the anchor button.
+ */
+function MenuContent({
+  menuItems,
+  activeKey,
+  t,
+  onNavigate,
+}: {
+  menuItems: { key: MenuRouteName; label: string }[];
+  activeKey: string;
+  t: ReturnType<typeof useTheme>;
+  onClose: () => void;
+  onNavigate: (key: MenuRouteName) => void;
+}) {
+  return (
+    <>
+      {menuItems.map((it) => (
+        <TouchableOpacity
+          key={it.key}
+          style={styles.menuItem}
+          onPress={() => onNavigate(it.key)}
+        >
+          <Text
+            style={[
+              styles.menuText,
+              { color: it.key === activeKey ? t.colors.primary : t.colors.text },
+            ]}
+          >
+            {it.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </>
+  );
+}
+
+const MENU_WIDTH = 160;
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
@@ -196,12 +262,20 @@ const styles = StyleSheet.create({
   left: { width: 40, justifyContent: "center" },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   right: { width: 80, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" },
-  appIcon: { width: 36, height: 36, borderRadius: 8, backgroundColor: "#ddd" },
   logo: { width: 70, height: 70 },
   title: { fontSize: 18, fontWeight: "600" },
   iconButton: { marginLeft: 6, padding: 3 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.2)", justifyContent: "flex-start" },
-  menuContainer: { marginRight: 12, alignSelf: "flex-end", borderRadius: 8, paddingVertical: 8, minWidth: 160, elevation: 4, shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 8 },
+  menuContainer: {
+    position: "absolute",
+    borderRadius: 8,
+    paddingVertical: 8,
+    minWidth: MENU_WIDTH,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
   menuItem: { paddingVertical: 12, paddingHorizontal: 16 },
   menuText: { fontSize: 15 },
 });

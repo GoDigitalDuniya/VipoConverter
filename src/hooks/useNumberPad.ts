@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Keyboard } from 'react-native';
 
 export type UseNumberPadOptions = {
   /**
@@ -56,6 +57,7 @@ export function useNumberPad(options: UseNumberPadOptions = {}): UseNumberPadRet
   }, []);
 
   const showNumberPad = useCallback(() => {
+    Keyboard.dismiss();
     hideNumberPad();
     openPadTimeoutRef.current = setTimeout(() => {
       setIsNumberPadVisible(true);
