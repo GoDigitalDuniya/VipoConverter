@@ -184,7 +184,7 @@ function LayoutContent(): JSX.Element {
             style={[
               styles.menuContainer,
               {
-                backgroundColor: t.colors.surface,
+                backgroundColor: t.colors.background,
                 borderColor: t.colors.border,
                 borderWidth: StyleSheet.hairlineWidth,
                 top: menuAnchor.top,

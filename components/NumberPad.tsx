@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import React, { useCallback, useEffect } from "react";
+import { BackHandler, Pressable, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import useCalculatorStore from "../src/store/useCalculatorStore";
 import { useTheme } from "../theme/ThemeProvider";
 
@@ -15,6 +16,11 @@ type NumberPadKey = {
 type NumberPadProps = {
   onKeyPress: (key: string) => void;
   inputValue?: string;
+  isVisible: boolean;
+  onShowKeyboard: () => void;
+  onHideKeyboard: () => void;
+  hiddenKeys?: string[];
+  navigateBackOnHardwareBack?: boolean; // default false
 };
 
 const KEYS: NumberPadKey[] = [
@@ -36,9 +42,18 @@ const KEYS: NumberPadKey[] = [
   { value: "delete", icon: "backspace", variant: "delete" },
 ];
 
-export default function NumberPad({ onKeyPress, inputValue = "0" }: NumberPadProps) {
+export default function NumberPad({
+  onKeyPress,
+  inputValue = "0",
+  isVisible,
+  onShowKeyboard,
+  onHideKeyboard,
+  hiddenKeys = [],
+  navigateBackOnHardwareBack = false,
+}: NumberPadProps) {
   const theme = useTheme();
   const router = useRouter();
+  const navigation = useNavigation();
   const setCalculatorValue = useCalculatorStore((state) => state.setValue);
   const { height: screenHeight } = useWindowDimensions();
 
@@ -49,12 +64,70 @@ export default function NumberPad({ onKeyPress, inputValue = "0" }: NumberPadPro
     )
   );
 
-  const styles = useMemo(() => createStyles(theme, padHeight), [theme, padHeight]);
+  const styles = createStyles(theme, padHeight);
+
+  // When pad is visible, hardware back button closes it instead of navigating back
+  useFocusEffect(
+    useCallback(() => {
+      if (!isVisible) return;
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          if (navigateBackOnHardwareBack) {
+            return false; // do not consume — allow navigator to handle back
+          }
+          onHideKeyboard();
+          return true; // consume the event — close pad instead of navigating
+        }
+      );
+      return () => subscription.remove();
+    }, [isVisible, onHideKeyboard, navigateBackOnHardwareBack])
+  );
+
+  // When pad is visible, intercept navigation gestures/button and close pad first
+  useEffect(() => {
+    if (!isVisible) return;
+    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
+      if (navigateBackOnHardwareBack) {
+        // Allow normal navigation when this prop is enabled.
+        return;
+      }
+      event.preventDefault();
+      onHideKeyboard();
+    });
+    return unsubscribe;
+  }, [isVisible, navigation, onHideKeyboard, navigateBackOnHardwareBack]);
+
+  if (!isVisible) {
+    return (
+      <TouchableOpacity
+        style={styles.keyboardButton}
+        onPress={onShowKeyboard}
+      >
+        <Text style={styles.keyboardText}>Show Keyboard</Text>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.grid}>
         {KEYS.map((key) => {
+          const isHidden = hiddenKeys.includes(key.value);
+
+          // Hidden keys render as an empty cell occupying the same grid space.
+          // This preserves layout — no reflow, no position shift of other keys.
+          if (isHidden) {
+            return (
+              <View
+                key={key.value}
+                style={styles.key}
+              >
+                <View style={[styles.keyFace, styles.keyFaceHidden]} />
+              </View>
+            );
+          }
+
           const iconColor =
             key.variant === "swap"
               ? stylesTokens.swapColor
@@ -151,6 +224,12 @@ const createStyles = (theme: ReturnType<typeof useTheme>, padHeight: number) =>
       justifyContent: "center",
       overflow: "hidden",
     },
+    keyFaceHidden: {
+      backgroundColor:
+        theme.name === "dark"
+          ? stylesTokens.keyBackgroundDark
+          : stylesTokens.keyBackgroundLight,
+    },
     keyText: {
       textAlign: "center",
       fontSize: 30,
@@ -167,5 +246,22 @@ const createStyles = (theme: ReturnType<typeof useTheme>, padHeight: number) =>
       color: stylesTokens.clearColor,
       fontSize: 24,
       fontWeight: "500",
+    },
+    keyboardButton: {
+      position: "absolute",
+      bottom: 0,
+      alignSelf: "center",
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 12,
+      elevation: 4,
+      minWidth: 160,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    keyboardText: {
+      color: theme.colors.primary,
+      fontWeight: "600",
     },
   });

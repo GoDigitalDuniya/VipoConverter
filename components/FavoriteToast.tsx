@@ -60,7 +60,7 @@ export default function FavoriteToast({
         style={[
           styles.container,
           {
-            backgroundColor: t.colors.surface,
+            backgroundColor: t.colors.background,
             borderColor: t.colors.border,
           },
         ]}

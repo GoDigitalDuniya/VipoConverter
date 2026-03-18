@@ -99,7 +99,7 @@ export default function SettingsScreen() {
 
       <Modal visible={modalVisible} transparent animationType="fade">
         <View style={[styles.modalOverlay, { backgroundColor: t.name === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)' }]}>
-          <View style={[styles.modalContainer, { backgroundColor: t.colors.surface }]}>
+          <View style={[styles.modalContainer, { backgroundColor: t.colors.background }]}>
             <Text style={[styles.modalTitle, { color: t.colors.text, borderBottomColor: t.colors.border }]}>Select number of digits</Text>
 
             <FlatList

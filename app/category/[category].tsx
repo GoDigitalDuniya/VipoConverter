@@ -1,8 +1,8 @@
 import { useLocalSearchParams } from "expo-router";
 import React, { useMemo } from "react";
 import { getCategoryType } from "../../src/conversion/registry/categoryRegistry";
-import BMIScreen from "../../src/features/bmi/BMIScreen";
 import { prettyName } from "../../src/utils/stringUtils";
+import BMIScreen from "./screens/category-types/BMIScreen";
 import BusinessScreen from "./screens/category-types/BusinessScreen";
 import GlucoseScreen from "./screens/category-types/GlucoseScreen";
 import MappingScreen from "./screens/category-types/MappingScreen";

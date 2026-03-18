@@ -1,4 +1,4 @@
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { TitleContext } from "@/app/_layout";
 import React, {
   useCallback,
   useContext,
@@ -8,13 +8,11 @@ import React, {
   useState,
 } from "react";
 import {
-  BackHandler,
   FlatList,
   LayoutChangeEvent,
   ListRenderItemInfo,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View
 } from "react-native";
 import CategoryTopBar from "../../../../components/CategoryTopBar";
@@ -24,33 +22,21 @@ import SimpleToast from "../../../../components/SimpleToast";
 import UnitRow from "../../../../components/UnitRow";
 import { ROW_HEIGHT } from "../../../../src/constants/layout";
 import { getCurrencyUnits } from "../../../../src/conversion/categories/currency";
-import { convert } from "../../../../src/conversion/engine/convert";
 import { CATEGORY_REGISTRY } from "../../../../src/conversion/registry/categoryRegistry";
 import { useConversionValues } from "../../../../src/hooks/useConversionValues";
+import { useHistoryLogging } from "../../../../src/hooks/useHistoryLogging";
 import { useNumberPad } from "../../../../src/hooks/useNumberPad";
 import { useUnitSelection } from "../../../../src/hooks/useUnitSelection";
 import { useWheelScroll } from "../../../../src/hooks/useWheelScroll";
 import useCalculatorStore from "../../../../src/store/useCalculatorStore";
-import useConversionHistoryStore from "../../../../src/store/useConversionHistoryStore";
 import useCurrencyRatesStore from "../../../../src/store/useCurrencyRatesStore";
 import useHistoryRestoreStore from "../../../../src/store/useHistoryRestoreStore";
 import useUnitSearchStore from "../../../../src/store/useUnitSearchStore";
 import { Unit } from "../../../../src/types/unit";
+import { isToday } from "../../../../src/utils/historyUtils";
 import useUnitFavoritesStore from "../../../../store/useUnitFavoritesStore";
 import { useTheme } from "../../../../theme/ThemeProvider";
-import { TitleContext } from "../../../_layout";
 
-function startOfDay(timestamp: number): number {
-  const d = new Date(timestamp);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
-}
-
-function isToday(timestamp: number): boolean {
-  return startOfDay(timestamp) === startOfDay(Date.now());
-}
-
-const HISTORY_TYPING_DEBOUNCE_MS = 450;
 
 interface StandardCategoryScreenProps {
   categoryKey: string;
@@ -62,10 +48,8 @@ export default function StandardCategoryScreen({
   displayName,
 }: StandardCategoryScreenProps) {
   const { setTitle } = useContext(TitleContext);
-  const navigation = useNavigation();
   const theme = useTheme();
   const calculatorValue = useCalculatorStore((state) => state.value);
-  const addHistory = useConversionHistoryStore((state) => state.addHistory);
   const pendingRestore = useHistoryRestoreStore((state) => state.pendingRestore);
   const clearPendingRestore = useHistoryRestoreStore((state) => state.clearPendingRestore);
   const lastHistorySignatureRef = useRef<string | null>(null);
@@ -244,31 +228,6 @@ export default function StandardCategoryScreen({
     return () => cancelAnimationFrame(handle);
   }, [containerHeight, isNumberPadVisible, recenterSelectedUnits, leftUnits.length, rightUnits.length]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        () => {
-          if (!isNumberPadVisible) return false;
-          hideNumberPad();
-          return true;
-        }
-      );
-
-      return () => subscription.remove();
-    }, [hideNumberPad, isNumberPadVisible])
-  );
-
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", (event) => {
-      if (!isNumberPadVisible) return;
-      event.preventDefault();
-      hideNumberPad();
-    });
-
-    return unsubscribe;
-  }, [hideNumberPad, isNumberPadVisible, navigation]);
-
   /* ---------------- Conversion ---------------- */
 
   const convertedValues = useConversionValues({
@@ -278,100 +237,20 @@ export default function StandardCategoryScreen({
     units: UNITS,
   });
 
-  useEffect(() => {
-    return () => {
-      if (typingHistoryTimeoutRef.current) {
-        clearTimeout(typingHistoryTimeoutRef.current);
-        typingHistoryTimeoutRef.current = null;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const inputUnitDef = UNITS.find((unit) => unit.key === inputUnit);
-    const outputUnitDef = UNITS.find((unit) => unit.key === outputUnit);
-    if (!inputUnitDef || !outputUnitDef) return;
-
-    const outputValue = convertedValues[outputUnit] ?? "0";
-    const signature = `${categoryKey}|${inputValue}|${inputUnit}|${outputUnit}|${outputValue}`;
-
-    if (!didInitHistoryRef.current) {
-      didInitHistoryRef.current = true;
-      lastHistorySignatureRef.current = signature;
-      return;
-    }
-
-    if (signature === lastHistorySignatureRef.current) return;
-
-    if (!inputValue || Number(inputValue) === 0) {
-      lastHistorySignatureRef.current = signature;
-      return;
-    }
-
-    if (!Number.isFinite(Number(outputValue))) {
-      lastHistorySignatureRef.current = signature;
-      return;
-    }
-
-    if (restoreInProgressRef.current) {
-      const target = restoreTargetRef.current;
-      const atRestoreTarget =
-        !!target &&
-        target.inputValue === inputValue &&
-        target.inputUnitKey === inputUnit &&
-        target.outputUnitKey === outputUnit;
-
-      lastHistorySignatureRef.current = signature;
-
-      if (atRestoreTarget) {
-        restoreInProgressRef.current = false;
-        restoreTargetRef.current = null;
-      }
-
-      return;
-    }
-
-    lastHistorySignatureRef.current = signature;
-
-    const createHistoryEntry = () =>
-      addHistory({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-      category: categoryKey,
-      inputValue,
-      inputUnitKey: inputUnit,
-      inputUnitLabel: inputUnitDef.label,
-      // Store raw (unformatted) output value for history to preserve exact numeric data
-      outputValue: String(convert(categoryKey, Number(inputValue) || 0, inputUnit, outputUnit)),
-      outputUnitKey: outputUnit,
-      outputUnitLabel: outputUnitDef.label,
-      timestamp: Date.now(),
-    });
-
-    if (typingHistoryTimeoutRef.current) {
-      clearTimeout(typingHistoryTimeoutRef.current);
-      typingHistoryTimeoutRef.current = null;
-    }
-
-    if (shouldDebounceHistoryRef.current) {
-      typingHistoryTimeoutRef.current = setTimeout(() => {
-        // Skip stale log attempts when input changed again during debounce.
-        if (lastHistorySignatureRef.current !== signature) return;
-        createHistoryEntry();
-        shouldDebounceHistoryRef.current = false;
-      }, HISTORY_TYPING_DEBOUNCE_MS);
-      return;
-    }
-
-    createHistoryEntry();
-  }, [
-    UNITS,
-    addHistory,
+  useHistoryLogging({
     categoryKey,
-    convertedValues,
-    inputUnit,
     inputValue,
+    inputUnit,
     outputUnit,
-  ]);
+    UNITS,
+    convertedValues,
+    shouldDebounceHistoryRef,
+    restoreInProgressRef,
+    restoreTargetRef,
+    lastHistorySignatureRef,
+    didInitHistoryRef,
+    typingHistoryTimeoutRef,
+  });
 
   /* ---------------- Center Padding ---------------- */
 
@@ -511,18 +390,13 @@ export default function StandardCategoryScreen({
         />
       </View>
 
-      {isNumberPadVisible && (
-        <NumberPad onKeyPress={handleNumberPadKeyPress} inputValue={inputValue} />
-      )}
-
-      {!isNumberPadVisible && (
-        <TouchableOpacity
-          style={styles.keyboardButton}
-          onPress={showNumberPad}
-        >
-          <Text style={styles.keyboardText}>Show Keyboard</Text>
-        </TouchableOpacity>
-      )}
+      <NumberPad
+        onKeyPress={handleNumberPadKeyPress}
+        inputValue={inputValue}
+        isVisible={isNumberPadVisible}
+        onShowKeyboard={showNumberPad}
+        onHideKeyboard={hideNumberPad}
+      />
       </>
       )}
 
@@ -564,23 +438,6 @@ const createStyles = (theme: any) =>
       borderColor: theme.colors.primary,
       backgroundColor: theme.colors.primary + "10",
       zIndex: 10,
-    },
-    keyboardButton: {
-      position: "absolute",
-      bottom: 0,
-      alignSelf: "center",
-      backgroundColor: theme.colors.surface,
-      paddingHorizontal: 20,
-      paddingVertical: 12,
-      borderRadius: 12,
-      elevation: 4,
-      minWidth: 160,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    keyboardText: {
-      color: theme.colors.primary,
-      fontWeight: "600",
     },
     unsupportedContainer: {
       flex: 1,
