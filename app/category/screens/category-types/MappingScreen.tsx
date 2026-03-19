@@ -95,12 +95,14 @@ export default function MappingScreen({ categoryKey }: MappingScreenProps) {
 
   const category: SizeCategory = data.categories[selection.categoryIndex];
   const selectedUnit = category.units[selection.unitIndex];
-  const row = category.rows[selection.wheelIndex];
 
   const wheelEntries: WheelEntry[] = useMemo(
     () => getWheelEntries(category, selectedUnit.key),
     [category, selectedUnit]
   );
+
+  const currentWheelEntry = wheelEntries[selection.wheelIndex];
+  const row = category.rows[currentWheelEntry?.rowIndex ?? 0];
 
   /**
    * When categoryIndex changes: find the matching unit in the new category.
@@ -239,7 +241,7 @@ export default function MappingScreen({ categoryKey }: MappingScreenProps) {
     });
     return () => cancelAnimationFrame(handle);
   }, [selection]);
-  
+
   useEffect(() => {
     return () => {
       if (settleTimeoutRef.current) {

@@ -76,7 +76,7 @@ export const clothingData: SizeChartData = {
             { key: "circ-inch", label: "circ. (inch)"},
             { key: "circ-mm",   label: "circ. (mm)"  },
             { key: "us",        label: "US"          },
-            { key: "uk",        label: "UK/Ireland"  },
+            { key: "uk",        label: "UK"  },
             { key: "japan",     label: "Japan"       },
             { key: "swiss",     label: "Swiss"       },
         ],
