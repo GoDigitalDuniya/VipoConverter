@@ -1,7 +1,5 @@
-import { TitleContext } from "@/app/_layout";
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -20,7 +18,6 @@ import FavoriteToast from "../../../../components/FavoriteToast";
 import NumberPad from "../../../../components/NumberPad";
 import SimpleToast from "../../../../components/SimpleToast";
 import UnitRow from "../../../../components/UnitRow";
-import { ROW_HEIGHT } from "../../../../src/constants/layout";
 import { getCurrencyUnits } from "../../../../src/conversion/categories/currency";
 import { CATEGORY_REGISTRY } from "../../../../src/conversion/registry/categoryRegistry";
 import { useConversionValues } from "../../../../src/hooks/useConversionValues";
@@ -36,18 +33,16 @@ import { Unit } from "../../../../src/types/unit";
 import { isToday } from "../../../../src/utils/historyUtils";
 import useUnitFavoritesStore from "../../../../store/useUnitFavoritesStore";
 import { useTheme } from "../../../../theme/ThemeProvider";
+import { ROW_HEIGHT } from "./components/_constants";
 
 
 interface StandardCategoryScreenProps {
   categoryKey: string;
-  displayName: string;
 }
 
 export default function StandardCategoryScreen({
   categoryKey,
-  displayName,
 }: StandardCategoryScreenProps) {
-  const { setTitle } = useContext(TitleContext);
   const theme = useTheme();
   const calculatorValue = useCalculatorStore((state) => state.value);
   const pendingRestore = useHistoryRestoreStore((state) => state.pendingRestore);
@@ -77,11 +72,6 @@ export default function StandardCategoryScreen({
   const [toastUnitName, setToastUnitName] = useState("");
   const [toastAction, setToastAction] = useState<"added" | "removed">("added");
   const [emptyFavoriteToastVisible, setEmptyFavoriteToastVisible] = useState(false);
-
-  useEffect(() => {
-    setTitle(displayName);
-    return () => setTitle(undefined);
-  }, [displayName, setTitle]);
 
   const styles = createStyles(theme);
 

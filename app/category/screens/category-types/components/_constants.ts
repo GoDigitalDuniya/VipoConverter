@@ -1,5 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+export const ROW_HEIGHT = 72;
+export const ROW_HEIGHT_MAPPING = 50;
 export const WEIGHT_UNITS = [
   { key: "kg", label: "Kilograms" },
   { key: "lb", label: "Pounds" },

@@ -89,10 +89,10 @@ export const CATEGORY_REGISTRY: Record<string, CategoryEntry> = {
   percentage: { type: "percentage", units: [] },
   pace: { type: "pace", units: [] },
   timezone: { type: "timezone", units: [] },
-  power_plug: { type: "power_plug", units: [] },
+  "power-plug": { type: "power_plug", units: [] },
   clothing: { type: "mapping", units: [] },
-  shoe_size: { type: "mapping", units: [] },
-  hex_decimal_binary: { type: "number_system", units: [] },
+  "shoe-size": { type: "mapping", units: [] },
+  "hex-decimal-binary": { type: "number_system", units: [] },
   glucose: { type: "glucose", units: [] },
   business: { type: "business", units: [] },
 };

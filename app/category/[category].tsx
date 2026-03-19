@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
+import { TitleContext } from "@/app/_layout";
 import { getCategoryType } from "../../src/conversion/registry/categoryRegistry";
 import { prettyName } from "../../src/utils/stringUtils";
 import BMIScreen from "./screens/category-types/BMIScreen";
@@ -13,7 +14,7 @@ import PowerPlugScreen from "./screens/category-types/PowerPlugScreen";
 import StandardCategoryScreen from "./screens/category-types/StandardCategoryScreen";
 import TimezoneScreen from "./screens/category-types/TimezoneScreen";
 
-/**
+/** 
  * CategoryScreen: Router for different category types
  *
  * This screen routes to different UI implementations based on category type:
@@ -26,6 +27,14 @@ export default function CategoryScreen() {
   const displayName = prettyName(category);
   const categoryType = getCategoryType(categoryKey);
 
+  // Set title for all category screen types
+  const { setTitle } = useContext(TitleContext);
+
+  useEffect(() => {
+    setTitle(displayName);
+    return () => setTitle(undefined);
+  }, [displayName, setTitle]);
+
   // Render the appropriate screen based on category type
   const renderScreen = useMemo(() => {
     switch (categoryType) {
@@ -33,7 +42,6 @@ export default function CategoryScreen() {
         return (
           <StandardCategoryScreen
             categoryKey={categoryKey}
-            displayName={displayName}
           />
         );
       // BMI Calculator  
@@ -65,7 +73,7 @@ export default function CategoryScreen() {
         return <BusinessScreen categoryKey={categoryKey} />;
 
       default:
-        return <StandardCategoryScreen categoryKey={categoryKey} displayName={displayName} />;
+        return <StandardCategoryScreen categoryKey={categoryKey} />;
     }
   }, [categoryType, categoryKey, displayName]);
 

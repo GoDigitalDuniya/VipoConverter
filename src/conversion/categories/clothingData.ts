@@ -1,0 +1,221 @@
+// clothingData.ts
+
+export type SizeRow = Record<string, string>;
+
+export type SizeUnit = {
+  key: string;
+  label: string;
+};
+
+export type SizeCategory = {
+  key: string;
+  label: string;
+  units: SizeUnit[];
+  rows: SizeRow[];
+};
+
+export type SizeChartData = {
+  key: string;
+  label: string;
+  categories: SizeCategory[];
+};
+
+export const clothingData: SizeChartData = {
+  key: "clothing",
+  label: "Clothing",
+  categories: [
+    {
+      key: "dress-shirts",
+      label: "Dress Shirts",
+      units: [
+        { key: "us", label: "US" },
+        { key: "uk", label: "UK" },
+        { key: "eur", label: "EUR" },
+        { key: "japan", label: "Japan" },
+      ],
+      rows: [
+        { us: "14",   uk: "14",   eur: "36", japan: "36" },
+        { us: "14.5", uk: "14.5", eur: "37", japan: "37" },
+        { us: "15",   uk: "15",   eur: "38", japan: "38" },
+        { us: "15.5", uk: "15.5", eur: "39", japan: "39" },
+        { us: "16",   uk: "16",   eur: "41", japan: "41" },
+        { us: "16.5", uk: "16.5", eur: "42", japan: "42" },
+        { us: "17",   uk: "17",   eur: "43", japan: "43" },
+        { us: "17.5", uk: "17.5", eur: "44", japan: "44" },
+      ],
+    },
+    {
+      key: "pants",
+      label: "Pants",
+      units: [
+        { key: "us",     label: "US (inch)" },
+        { key: "cm",     label: "cm" },
+        { key: "eur-jp", label: "EUR/JP" },
+      ],
+      rows: [
+        { us: "28", cm: "71",  "eur-jp": ""   },
+        { us: "30", cm: "76",  "eur-jp": "46" },
+        { us: "32", cm: "81",  "eur-jp": "48" },
+        { us: "34", cm: "86",  "eur-jp": "50" },
+        { us: "36", cm: "91",  "eur-jp": "52" },
+        { us: "38", cm: "97",  "eur-jp": "54" },
+        { us: "40", cm: "102", "eur-jp": "56" },
+        { us: "42", cm: "107", "eur-jp": ""   },
+        { us: "44", cm: "112", "eur-jp": ""   },
+        { us: "46", cm: "117", "eur-jp": ""   },
+        { us: "48", cm: "122", "eur-jp": ""   },
+        { us: "50", cm: "127", "eur-jp": ""   },
+      ],
+    },
+    {
+        key: "rings",
+        label: "Rings",
+        units: [
+            { key: "dia-inch",  label: "dia. (inch)" },
+            { key: "dia-mm",    label: "dia. (mm)"   },
+            { key: "circ-inch", label: "circ. (inch)"},
+            { key: "circ-mm",   label: "circ. (mm)"  },
+            { key: "us",        label: "US"          },
+            { key: "uk",        label: "UK/Ireland"  },
+            { key: "japan",     label: "Japan"       },
+            { key: "swiss",     label: "Swiss"       },
+        ],
+        rows: [
+            { "dia-inch": "0.458", "dia-mm": "11.63", "circ-inch": "1.44", "circ-mm": "36.5", us: "0",    uk: "",      japan: "",   swiss: ""    },
+            { "dia-inch": "0.466", "dia-mm": "11.84", "circ-inch": "1.46", "circ-mm": "37.2", us: "1/4",  uk: "",      japan: "",   swiss: ""    },
+            { "dia-inch": "0.474", "dia-mm": "12.04", "circ-inch": "1.49", "circ-mm": "37.8", us: "1/2",  uk: "A",     japan: "",   swiss: ""    },
+            { "dia-inch": "0.482", "dia-mm": "12.24", "circ-inch": "1.51", "circ-mm": "38.5", us: "3/4",  uk: "A1/2",  japan: "",   swiss: ""    },
+            { "dia-inch": "0.49",  "dia-mm": "12.45", "circ-inch": "1.54", "circ-mm": "39.1", us: "1",    uk: "B",     japan: "1",  swiss: ""    },
+            { "dia-inch": "0.498", "dia-mm": "12.65", "circ-inch": "1.56", "circ-mm": "39.7", us: "1 1/4","uk": "B1/2","japan": "", swiss: ""    },
+            { "dia-inch": "0.506", "dia-mm": "12.85", "circ-inch": "1.59", "circ-mm": "40.4", us: "1 1/2","uk": "C",   japan: "",   swiss: "0.4" },
+            { "dia-inch": "0.514", "dia-mm": "13.06", "circ-inch": "1.61", "circ-mm": "41.0", us: "1 3/4","uk": "C1/2","japan": "", swiss: "1"   },
+            { "dia-inch": "0.522", "dia-mm": "13.26", "circ-inch": "1.64", "circ-mm": "41.7", us: "2",    uk: "D",     japan: "2",  swiss: "1.7" },
+            { "dia-inch": "0.53",  "dia-mm": "13.46", "circ-inch": "1.67", "circ-mm": "42.3", us: "2 1/4","uk": "D1/2","japan": "", swiss: "2.3" },
+            { "dia-inch": "0.538", "dia-mm": "13.67", "circ-inch": "1.69", "circ-mm": "42.9", us: "2 1/2","uk": "E",   japan: "3",  swiss: "2.9" },
+            { "dia-inch": "0.546", "dia-mm": "13.87", "circ-inch": "1.72", "circ-mm": "43.6", us: "2 3/4","uk": "E1/2","japan": "", swiss: "3.6" },
+            { "dia-inch": "0.554", "dia-mm": "14.07", "circ-inch": "1.74", "circ-mm": "44.2", us: "3",    uk: "F",     japan: "4",  swiss: "4.2" },
+            { "dia-inch": "0.562", "dia-mm": "14.27", "circ-inch": "1.77", "circ-mm": "44.8", us: "3 1/4","uk": "F1/2","japan": "5","swiss": "4.8"},
+            { "dia-inch": "0.57",  "dia-mm": "14.48", "circ-inch": "1.79", "circ-mm": "45.5", us: "3 1/2","uk": "G",   japan: "",   swiss: "5.5" },
+            { "dia-inch": "0.578", "dia-mm": "14.68", "circ-inch": "1.82", "circ-mm": "46.1", us: "3 3/4","uk": "G1/2","japan": "6","swiss": "6.1"},
+            { "dia-inch": "0.586", "dia-mm": "14.88", "circ-inch": "1.84", "circ-mm": "46.8", us: "4",    uk: "H",     japan: "7",  swiss: "6.8" },
+            { "dia-inch": "0.594", "dia-mm": "15.09", "circ-inch": "1.87", "circ-mm": "47.4", us: "4 1/4","uk": "H1/2","japan": "", swiss: "7.4" },
+            { "dia-inch": "0.602", "dia-mm": "15.29", "circ-inch": "1.89", "circ-mm": "48.0", us: "4 1/2","uk": "I",   japan: "8",  swiss: "8"   },
+            { "dia-inch": "0.61",  "dia-mm": "15.49", "circ-inch": "1.92", "circ-mm": "48.7", us: "4 3/4","uk": "J",   japan: "9",  swiss: "8.7" },
+            { "dia-inch": "0.618", "dia-mm": "15.70", "circ-inch": "1.94", "circ-mm": "49.3", us: "5",    uk: "J1/2",  japan: "",   swiss: "9.3" },
+            { "dia-inch": "0.626", "dia-mm": "15.90", "circ-inch": "1.97", "circ-mm": "50.0", us: "5 1/4","uk": "K",   japan: "10", swiss: "10"  },
+            { "dia-inch": "0.634", "dia-mm": "16.10", "circ-inch": "1.99", "circ-mm": "50.6", us: "5 1/2","uk": "K1/2","japan": "", swiss: "10.6"},
+            { "dia-inch": "0.642", "dia-mm": "16.31", "circ-inch": "2.02", "circ-mm": "51.2", us: "5 3/4","uk": "L",   japan: "11", swiss: "11.2"},
+            { "dia-inch": "0.65",  "dia-mm": "16.51", "circ-inch": "2.04", "circ-mm": "51.9", us: "6",    uk: "L1/2",  japan: "12", swiss: "11.9"},
+            { "dia-inch": "0.658", "dia-mm": "16.71", "circ-inch": "2.07", "circ-mm": "52.5", us: "6 1/4","uk": "M",   japan: "",   swiss: "12.5"},
+            { "dia-inch": "0.666", "dia-mm": "16.92", "circ-inch": "2.09", "circ-mm": "53.1", us: "6 1/2","uk": "M1/2","japan": "13","swiss": "13.1"},
+            { "dia-inch": "0.674", "dia-mm": "17.12", "circ-inch": "2.12", "circ-mm": "53.8", us: "6 3/4","uk": "N",   japan: "",   swiss: "13.8"},
+            { "dia-inch": "0.682", "dia-mm": "17.32", "circ-inch": "2.14", "circ-mm": "54.4", us: "7",    uk: "N1/2",  japan: "14", swiss: "14.4"},
+            { "dia-inch": "0.69",  "dia-mm": "17.53", "circ-inch": "2.17", "circ-mm": "55.1", us: "7 1/4","uk": "O",   japan: "15", swiss: "15.1"},
+            { "dia-inch": "0.698", "dia-mm": "17.73", "circ-inch": "2.19", "circ-mm": "55.7", us: "7 1/2","uk": "O1/2","japan": "", swiss: "15.7"},
+            { "dia-inch": "0.706", "dia-mm": "17.93", "circ-inch": "2.22", "circ-mm": "56.3", us: "7 3/4","uk": "P",   japan: "16", swiss: "16.3"},
+            { "dia-inch": "0.714", "dia-mm": "18.14", "circ-inch": "2.24", "circ-mm": "57.0", us: "8",    uk: "P1/2",  japan: "17", swiss: "17"  },
+            { "dia-inch": "0.722", "dia-mm": "18.34", "circ-inch": "2.27", "circ-mm": "57.6", us: "8 1/4","uk": "P3/4","japan": "", swiss: "17.6"},
+            { "dia-inch": "0.73",  "dia-mm": "18.54", "circ-inch": "2.29", "circ-mm": "58.3", us: "8 1/2","uk": "Q1/4","japan": "18","swiss": "18.3"},
+            { "dia-inch": "0.738", "dia-mm": "18.75", "circ-inch": "2.32", "circ-mm": "58.9", us: "8 3/4","uk": "R",   japan: "19", swiss: "18.9"},
+            { "dia-inch": "0.746", "dia-mm": "18.95", "circ-inch": "2.34", "circ-mm": "59.5", us: "9",    uk: "R1/2",  japan: "18", swiss: "19.5"},
+            { "dia-inch": "0.754", "dia-mm": "19.15", "circ-inch": "2.37", "circ-mm": "60.2", us: "9 1/4","uk": "S",   japan: "20", swiss: "20.2"},
+            { "dia-inch": "0.762", "dia-mm": "19.35", "circ-inch": "2.39", "circ-mm": "60.8", us: "9 1/2","uk": "S1/2","japan": "21","swiss": "20.8"},
+            { "dia-inch": "0.77",  "dia-mm": "19.56", "circ-inch": "2.42", "circ-mm": "61.4", us: "9 3/4","uk": "T",   japan: "",   swiss: "21.4"},
+            { "dia-inch": "0.778", "dia-mm": "19.76", "circ-inch": "2.44", "circ-mm": "62.1", us: "10",   uk: "T1/2",  japan: "22", swiss: "22.1"},
+            { "dia-inch": "0.786", "dia-mm": "19.96", "circ-inch": "2.47", "circ-mm": "62.7", us: "10 1/4","uk": "U",  japan: "23", swiss: "22.7"},
+            { "dia-inch": "0.794", "dia-mm": "20.17", "circ-inch": "2.49", "circ-mm": "63.4", us: "10 1/2","uk": "U1/2","japan": "", swiss: "23.4"},
+            { "dia-inch": "0.802", "dia-mm": "20.37", "circ-inch": "2.52", "circ-mm": "64.0", us: "10 3/4","uk": "V",  japan: "24", swiss: "24"  },
+            { "dia-inch": "0.81",  "dia-mm": "20.57", "circ-inch": "2.54", "circ-mm": "64.6", us: "11",   uk: "V1/2",  japan: "25", swiss: "24.6"},
+            { "dia-inch": "0.818", "dia-mm": "20.78", "circ-inch": "2.57", "circ-mm": "65.3", us: "11 1/4","uk": "W",  japan: "",   swiss: "25.3"},
+            { "dia-inch": "0.826", "dia-mm": "20.98", "circ-inch": "2.59", "circ-mm": "65.9", us: "11 1/2","uk": "W1/2","japan": "26","swiss": "25.9"},
+            { "dia-inch": "0.834", "dia-mm": "21.18", "circ-inch": "2.62", "circ-mm": "66.6", us: "11 3/4","uk": "X",  japan: "",   swiss: "26.6"},
+            { "dia-inch": "0.842", "dia-mm": "21.39", "circ-inch": "2.65", "circ-mm": "67.2", us: "12",   uk: "X1/2",  japan: "27", swiss: "27.2"},
+            { "dia-inch": "0.85",  "dia-mm": "21.59", "circ-inch": "2.67", "circ-mm": "67.8", us: "12 1/4","uk": "Y",  japan: "28", swiss: "27.8"},
+            { "dia-inch": "0.858", "dia-mm": "21.79", "circ-inch": "2.70", "circ-mm": "68.5", us: "12 1/2","uk": "Y1/2","japan": "29","swiss": "28.5"},
+            { "dia-inch": "0.866", "dia-mm": "22.00", "circ-inch": "2.72", "circ-mm": "69.1", us: "12 3/4","uk": "Z",  japan: "",   swiss: "29.1"},
+            { "dia-inch": "0.874", "dia-mm": "22.20", "circ-inch": "2.75", "circ-mm": "69.7", us: "13",   uk: "Z1/2",  japan: "30", swiss: "29.7"},
+            { "dia-inch": "0.882", "dia-mm": "22.40", "circ-inch": "2.77", "circ-mm": "70.4", us: "13 1/4","uk": "Z1", japan: "",   swiss: "30.4"},
+            { "dia-inch": "0.89",  "dia-mm": "22.61", "circ-inch": "2.80", "circ-mm": "71.0", us: "13 1/2","uk": "",   japan: "31", swiss: "31"  },
+            { "dia-inch": "0.898", "dia-mm": "22.81", "circ-inch": "2.82", "circ-mm": "71.7", us: "13 3/4","uk": "",   japan: "32", swiss: "31.7"},
+            { "dia-inch": "0.906", "dia-mm": "23.01", "circ-inch": "2.85", "circ-mm": "72.3", us: "14",   uk: "Z3",    japan: "",   swiss: "32.3"},
+            { "dia-inch": "0.914", "dia-mm": "23.22", "circ-inch": "2.87", "circ-mm": "72.9", us: "14 1/4","uk": "",   japan: "33", swiss: "32.9"},
+            { "dia-inch": "0.922", "dia-mm": "23.42", "circ-inch": "2.90", "circ-mm": "73.6", us: "14 1/2","uk": "Z4", japan: "",   swiss: "33.6"},
+            { "dia-inch": "0.93",  "dia-mm": "23.62", "circ-inch": "2.92", "circ-mm": "74.2", us: "14 3/4","uk": "",   japan: "34", swiss: "34.2"},
+            { "dia-inch": "0.938", "dia-mm": "23.83", "circ-inch": "2.95", "circ-mm": "74.8", us: "15",   uk: "",      japan: "35", swiss: "34.8"},
+            { "dia-inch": "0.946", "dia-mm": "24.03", "circ-inch": "2.97", "circ-mm": "75.5", us: "15 1/4","uk": "",   japan: "",   swiss: "35.5"},
+            { "dia-inch": "0.954", "dia-mm": "24.23", "circ-inch": "3.00", "circ-mm": "76.1", us: "15 1/2","uk": "",   japan: "36", swiss: "36.1"},
+            { "dia-inch": "0.962", "dia-mm": "24.43", "circ-inch": "3.02", "circ-mm": "76.8", us: "15 3/4","uk": "",   japan: "",   swiss: "36.8"},
+            { "dia-inch": "0.97",  "dia-mm": "24.64", "circ-inch": "3.05", "circ-mm": "77.4", us: "16",   uk: "",      japan: "37", swiss: "37.4"},
+        ],
+    },
+    {
+      key: "suits",
+      label: "Suits",
+      units: [
+        { key: "us",    label: "US" },
+        { key: "uk",    label: "UK" },
+        { key: "eur",   label: "EUR" },
+        { key: "japan", label: "Japan" },
+      ],
+      rows: [
+        { us: "32", uk: "32", eur: "42", japan: ""   },
+        { us: "34", uk: "34", eur: "44", japan: "S"  },
+        { us: "36", uk: "36", eur: "46", japan: ""   },
+        { us: "38", uk: "38", eur: "48", japan: "M"  },
+        { us: "40", uk: "40", eur: "50", japan: "L"  },
+        { us: "42", uk: "42", eur: "52", japan: ""   },
+        { us: "44", uk: "44", eur: "54", japan: "LL" },
+        { us: "46", uk: "46", eur: "56", japan: ""   },
+        { us: "48", uk: "48", eur: "58", japan: ""   },
+      ],
+    },
+    {
+      key: "t-shirts",
+      label: "T-Shirts",
+      units: [
+        { key: "us-letter", label: "US (Letter)" },
+        { key: "us-uk",     label: "US/UK" },
+        { key: "eur",       label: "EUR" },
+        { key: "japan",     label: "Japan" },
+      ],
+      rows: [
+        { "us-letter": "S",   "us-uk": "34",    eur: "87",      japan: "87"      },
+        { "us-letter": "M",   "us-uk": "36",    eur: "91",      japan: "91"      },
+        { "us-letter": "M",   "us-uk": "38",    eur: "97",      japan: "97"      },
+        { "us-letter": "L",   "us-uk": "40",    eur: "102",     japan: "102"     },
+        { "us-letter": "XL",  "us-uk": "42",    eur: "107",     japan: "107"     },
+        { "us-letter": "XL",  "us-uk": "44",    eur: "112",     japan: "112"     },
+        { "us-letter": "XXL", "us-uk": "46-48", eur: "117-122", japan: "117-122" },
+        { "us-letter": "XXL", "us-uk": "46-48", eur: "117-122", japan: "117-122" },
+      ],
+    },
+    {
+      key: "women",
+      label: "Women",
+      units: [
+        { key: "us",        label: "US" },
+        { key: "us-letter", label: "US (Letter)" },
+        { key: "uk",        label: "UK" },
+        { key: "france",    label: "France" },
+        { key: "germany",   label: "Germany" },
+        { key: "italy",     label: "Italy" },
+        { key: "australia", label: "Australia" },
+        { key: "japan",     label: "Japan" },
+      ],
+      rows: [
+        { us: "2",  "us-letter": "XS",    uk: "4",  france: "32", germany: "30", italy: "36", australia: "6",  japan: "5"  },
+        { us: "4",  "us-letter": "XS/S",  uk: "6",  france: "34", germany: "32", italy: "38", australia: "8",  japan: "7"  },
+        { us: "6",  "us-letter": "S",     uk: "8",  france: "36", germany: "34", italy: "40", australia: "10", japan: "9"  },
+        { us: "8",  "us-letter": "M",     uk: "10", france: "38", germany: "36", italy: "42", australia: "12", japan: "11" },
+        { us: "10", "us-letter": "M",     uk: "12", france: "40", germany: "38", italy: "44", australia: "14", japan: "13" },
+        { us: "12", "us-letter": "L",     uk: "14", france: "42", germany: "40", italy: "46", australia: "16", japan: "15" },
+        { us: "14", "us-letter": "L/XL",  uk: "16", france: "44", germany: "42", italy: "48", australia: "18", japan: "17" },
+        { us: "16", "us-letter": "XL/1X", uk: "18", france: "46", germany: "44", italy: "50", australia: "20", japan: "19" },
+        { us: "18", "us-letter": "1X/2X", uk: "20", france: "50", germany: "46", italy: "52", australia: "22", japan: "21" },
+        { us: "20", "us-letter": "2X",    uk: "22", france: "52", germany: "48", italy: "54", australia: "24", japan: "23" },
+        { us: "22", "us-letter": "3X",    uk: "24", france: "54", germany: "50", italy: "56", australia: "26", japan: "25" },
+        { us: "24", "us-letter": "3X",    uk: "26", france: "56", germany: "52", italy: "58", australia: "28", japan: "27" },
+      ],
+    },
+  ],
+};

@@ -11,7 +11,7 @@ import { useNumberPad } from "../../../../src/hooks/useNumberPad";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import AnchoredDropdown from "./components/AnchoredDropdown";
 import BmiResultCard from "./components/BmiResultCard";
-import { BMI_CATEGORIES, HEIGHT_UNITS, WEIGHT_UNITS, getBmiIconName } from "./components/constants";
+import { BMI_CATEGORIES, HEIGHT_UNITS, WEIGHT_UNITS, getBmiIconName } from "./components/_constants";
 
 type Props = {
   categoryKey: string;

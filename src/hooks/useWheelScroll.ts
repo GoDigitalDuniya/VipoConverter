@@ -1,6 +1,6 @@
+import { ROW_HEIGHT } from "@/app/category/screens/category-types/components/_constants";
 import { useCallback, useEffect, useRef } from "react";
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import { ROW_HEIGHT } from "../constants/layout";
 import { Unit } from "../types/unit";
 
 /**
