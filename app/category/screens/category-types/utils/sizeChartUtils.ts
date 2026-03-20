@@ -1,4 +1,4 @@
-import { SizeCategory, WheelEntry } from "./sizeChartTypes";
+import { SizeCategory, WheelEntry } from "../sizeChartTypes";
 
 /**
  * Extract wheel entries for a given category and unit.

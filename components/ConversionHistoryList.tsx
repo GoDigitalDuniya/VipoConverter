@@ -235,7 +235,7 @@ export default function ConversionHistoryList({ items }: Props) {
 const createStyles = (theme: ReturnType<typeof useTheme>) =>
   StyleSheet.create({
     sectionRow: {
-      backgroundColor: "#4cb4c4",
+      backgroundColor: theme.colors.historyHeaderBackground,
       paddingHorizontal: 12,
       paddingVertical: 3,
     },

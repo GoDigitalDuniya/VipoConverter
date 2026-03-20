@@ -1,13 +1,13 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useTheme } from "../../../../../theme/ThemeProvider";
-import { GlucoseUnit, UNIT_LABELS } from "../glucoseUtils";
+import { GlucoseUnit, UNIT_LABELS } from "../utils/glucoseUtils";
 
 interface GlucoseInputZoneProps {
   inputValue: string;

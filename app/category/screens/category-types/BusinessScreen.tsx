@@ -3,6 +3,8 @@ import { useNumberPad } from "@/src/hooks/useNumberPad";
 import { useTheme } from "@/theme/ThemeProvider";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import BusinessHeader from "./components/BusinessHeader";
+import CagrFieldRow from "./components/CagrFieldRow";
 import {
   computeBeginningValue,
   computeCagr,
@@ -11,9 +13,7 @@ import {
   FieldKey,
   formatNumber,
   safeNumber,
-} from "./cagrUtils";
-import BusinessHeader from "./components/BusinessHeader";
-import CagrFieldRow from "./components/CagrFieldRow";
+} from "./utils/cagrUtils";
 
 type Props = {
   categoryKey: string;

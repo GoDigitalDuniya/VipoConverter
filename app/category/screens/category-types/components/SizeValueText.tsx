@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleProp, StyleSheet, Text, TextStyle, View } from "react-native";
-import { parseSizeValue } from "../sizeChartUtils";
+import { parseSizeValue } from "../utils/sizeChartUtils";
 
 /**
  * Renders a size value with optional fraction as a visual superscript.

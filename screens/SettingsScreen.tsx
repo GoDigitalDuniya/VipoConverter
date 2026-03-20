@@ -42,6 +42,7 @@ export default function SettingsScreen() {
           onPress={onToggleTheme}
           textColor={t.colors.text}
           valueColor={t.colors.primary}
+          theme={t}
         />
 
         <SettingsRow
@@ -50,6 +51,7 @@ export default function SettingsScreen() {
           onPress={() => setModalVisible(true)}
           textColor={t.colors.text}
           valueColor={t.colors.primary}
+          theme={t}
         />
 
         <SettingsRow
@@ -58,6 +60,7 @@ export default function SettingsScreen() {
           onPress={onToggleDashboard}
           textColor={t.colors.text}
           valueColor={t.colors.primary}
+          theme={t}
         />
       </View>
 
@@ -142,16 +145,18 @@ const SettingsRow = ({
   onPress,
   textColor,
   valueColor,
+  theme,
 }: {
   label: string;
   value: string;
   onPress: () => void;
   textColor?: string;
   valueColor?: string;
+  theme: ReturnType<typeof useTheme>;
 }) => (
-  <TouchableOpacity style={[styles.row, { borderBottomColor: '#ccc' }]} onPress={onPress}>
-    <Text style={[styles.rowLabel, { color: textColor || '#222' }]}>{label}</Text>
-    <Text style={[styles.rowValue, { color: valueColor || '#b48a2c' }]}>{value}</Text>
+  <TouchableOpacity style={[styles.row, { borderBottomColor: theme.colors.settingsBorder }]} onPress={onPress}>
+    <Text style={[styles.rowLabel, { color: textColor || theme.colors.settingsDefaultText }]}>{label}</Text>
+    <Text style={[styles.rowValue, { color: valueColor || theme.colors.settingsDefaultValue }]}>{value}</Text>
   </TouchableOpacity>
 );
 

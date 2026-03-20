@@ -1,15 +1,15 @@
 import React, { useMemo } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useTheme } from "../../../../../theme/ThemeProvider";
 import {
-    MGDL_TO_MMOL_TABLE,
-    MMOL_TO_MGDL_TABLE,
-} from "../glucoseUtils";
+  MGDL_TO_MMOL_TABLE,
+  MMOL_TO_MGDL_TABLE,
+} from "../utils/glucoseUtils";
 
 export default function GlucoseConversionTable() {
   const theme = useTheme();

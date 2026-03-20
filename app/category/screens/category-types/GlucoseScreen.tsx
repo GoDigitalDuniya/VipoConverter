@@ -14,7 +14,7 @@ import {
   GlucoseUnit,
   mgdlToMmol,
   mmolToMgdl,
-} from "./glucoseUtils";
+} from "./utils/glucoseUtils";
 
 interface GlucoseScreenProps {
   categoryKey: string;

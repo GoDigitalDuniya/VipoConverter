@@ -40,7 +40,7 @@ export function RadioModal({ visible, options, selectedKey, onSelect, onClose, t
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.3)" },
-  container: { backgroundColor: "#fff", padding: 16, borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: "50%" },
+  container: { padding: 16, borderTopLeftRadius: 12, borderTopRightRadius: 12, maxHeight: "50%" },
   title: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
   item: { paddingVertical: 12 },
   itemSelected: { backgroundColor: "rgba(0,0,0,0.04)" },

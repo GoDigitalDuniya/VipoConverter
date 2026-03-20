@@ -104,7 +104,7 @@ function LayoutContent(): JSX.Element {
     <SafeAreaView style={[styles.safe, { backgroundColor }]} edges={["top", "right", "left", "bottom"]}>
       <StatusBar style={statusBarStyle} backgroundColor={backgroundColor} translucent={false} />
 
-      <View style={[styles.header, { backgroundColor, paddingTop: 0, borderBottomColor: t.colors.border }]}>
+      <View style={[styles.header, { backgroundColor, borderBottomColor: t.colors.border }]}>
         <View style={[styles.left, { width: 70 }]}>
           <Image
             source={require("../assets/images/app-logo.jpeg")}
@@ -257,7 +257,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e5e5e5",
   },
   left: { width: 40, justifyContent: "center" },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },

@@ -133,9 +133,7 @@ export default function NumberPad({
               ? stylesTokens.swapColor
               : key.variant === "delete"
               ? stylesTokens.deleteColor
-              : theme.name === "dark"
-              ? "#f5f5f5"
-              : stylesTokens.defaultText;
+              : theme.colors.keyText;
 
           return (
             <Pressable
@@ -177,12 +175,6 @@ export default function NumberPad({
 }
 
 const stylesTokens = {
-  padBackgroundLight: "#d7dbe3",
-  padBackgroundDark: "#2e3138",
-  keyBackgroundLight: "#f4f4f4",
-  keyBackgroundDark: "#454851",
-  defaultText: "#121212",
-  clearColor: "#8dc63f",
   swapColor: "#8dc63f",
   deleteColor: "#8dc63f",
 };
@@ -192,10 +184,7 @@ const createStyles = (theme: ReturnType<typeof useTheme>, padHeight: number) =>
     container: {
       height: padHeight,
       padding: 10,
-      backgroundColor:
-        theme.name === "dark"
-          ? stylesTokens.padBackgroundDark
-          : stylesTokens.padBackgroundLight,
+      backgroundColor: theme.colors.padBackground,
     },
     grid: {
       flex: 1,
@@ -216,26 +205,20 @@ const createStyles = (theme: ReturnType<typeof useTheme>, padHeight: number) =>
     },
     keyFace: {
       flex: 1,
-      backgroundColor:
-        theme.name === "dark"
-          ? stylesTokens.keyBackgroundDark
-          : stylesTokens.keyBackgroundLight,
+      backgroundColor: theme.colors.keyBackground,
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
     },
     keyFaceHidden: {
-      backgroundColor:
-        theme.name === "dark"
-          ? stylesTokens.keyBackgroundDark
-          : stylesTokens.keyBackgroundLight,
+      backgroundColor: theme.colors.keyBackground,
     },
     keyText: {
       textAlign: "center",
       fontSize: 30,
       lineHeight: 34,
       fontWeight: "500",
-      color: theme.name === "dark" ? "#f5f5f5" : stylesTokens.defaultText,
+      color: theme.colors.keyText,
       includeFontPadding: false,
     },
     doubleZeroText: {
@@ -243,7 +226,7 @@ const createStyles = (theme: ReturnType<typeof useTheme>, padHeight: number) =>
       fontWeight: "600",
     },
     clearText: {
-      color: stylesTokens.clearColor,
+      color: theme.colors.accentKey,
       fontSize: 24,
       fontWeight: "500",
     },

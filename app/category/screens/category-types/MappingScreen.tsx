@@ -25,7 +25,7 @@ import {
   VirtualUnit,
   WheelEntry,
 } from "./sizeChartTypes";
-import { getWheelEntries } from "./sizeChartUtils";
+import { getWheelEntries } from "./utils/sizeChartUtils";
 
 interface MappingScreenProps {
   categoryKey: string;

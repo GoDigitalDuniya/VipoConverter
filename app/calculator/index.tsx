@@ -191,7 +191,7 @@ export default function CalculatorScreen() {
                   <MaterialCommunityIcons
                     name={key.icon}
                     size={36}
-                    color={theme.name === "dark" ? "#f5f5f5" : "#8f7c3c"}
+                    color={theme.colors.calculatorIconLight}
                   />
                 ) : (
                   <Text style={keyTextStyle}>{key.label}</Text>
@@ -206,15 +206,7 @@ export default function CalculatorScreen() {
 }
 
 const stylesTokens = {
-  pageBgLight: "#d7dbe3",
-  pageBgDark: "#2e3138",
-  displayBgLight: "#e6e7ea",
-  displayBgDark: "#3a3d45",
-  keyBgLight: "#f4f4f4",
-  keyBgDark: "#454851",
   equalBg: "#8dc63f",
-  textLight: "#121212",
-  textDark: "#f5f5f5",
   accent: "#8dc63f",
 };
 
@@ -222,19 +214,19 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.name === "dark" ? stylesTokens.pageBgDark : stylesTokens.pageBgLight,
+      backgroundColor: theme.colors.padBackground,
     },
     displayArea: {
       flex: 1,
       paddingHorizontal: 20,
       paddingVertical: 24,
       justifyContent: "space-between",
-      backgroundColor: theme.name === "dark" ? stylesTokens.displayBgDark : stylesTokens.displayBgLight,
+      backgroundColor: theme.colors.calculatorDisplayBackground,
     },
     expressionText: {
       textAlign: "right",
       fontSize: 32,
-      color: theme.name === "dark" ? stylesTokens.textDark : stylesTokens.textLight,
+      color: theme.colors.keyText,
       opacity: 0.9,
     },
     resultText: {
@@ -242,7 +234,7 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       fontSize: 86,
       lineHeight: 92,
       fontWeight: "300",
-      color: theme.name === "dark" ? stylesTokens.textDark : stylesTokens.textLight,
+      color: theme.colors.keyText,
       includeFontPadding: false,
     },
     keypad: {
@@ -261,7 +253,7 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
     },
     keyFace: {
       flex: 1,
-      backgroundColor: theme.name === "dark" ? stylesTokens.keyBgDark : stylesTokens.keyBgLight,
+      backgroundColor: theme.colors.keyBackground,
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
@@ -271,11 +263,11 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       fontSize: 30,
       lineHeight: 34,
       fontWeight: "500",
-      color: theme.name === "dark" ? stylesTokens.textDark : stylesTokens.textLight,
+      color: theme.colors.keyText,
       includeFontPadding: false,
     },
     clearText: {
-      color: stylesTokens.accent,
+      color: theme.colors.accentKey,
       fontSize: 22,
       fontWeight: "500",
     },
