@@ -50,7 +50,7 @@ export default function BMIScreen({ categoryKey }: Props) {
       setInputValue(currentFieldValue);
     }
   }, [activeInput]); // Only depend on activeInput, not the field values or setInputValue
-
+  
   // Update the active input field when NumberPad value changes
   useEffect(() => {
     if (activeInput) {

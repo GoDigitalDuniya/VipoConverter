@@ -213,24 +213,26 @@ export default function MappingScreen({ categoryKey }: MappingScreenProps) {
     const source = cascadeSourceRef.current;
     cascadeSourceRef.current = null;
 
-    // Delay programmatic scroll until after iOS scroll responder has settled.
-    // Using two rAF frames gives iOS enough time to release the gesture context.
     const handle = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (isScrollSettlingRef.current) return; // still settling — skip
-
-        if (source !== "category") {
+        // Category and unit columns — skip the source column,
+        // guard others with settling check
+        if (source !== "category" && !isScrollSettlingRef.current) {
           categoryColumnRef.current?.scrollToOffset({
             offset: selection.categoryIndex * ROW_HEIGHT_MAPPING,
             animated: false,
           });
         }
-        if (source !== "unit") {
+        if (source !== "unit" && !isScrollSettlingRef.current) {
           unitColumnRef.current?.scrollToOffset({
             offset: selection.unitIndex * ROW_HEIGHT_MAPPING,
             animated: false,
           });
         }
+
+        // Value column is NEVER the settle source — always scroll it.
+        // It was not touched by the user's gesture so iOS scroll responder
+        // is not active on it — no settle guard needed.
         if (source !== "value") {
           valueColumnRef.current?.scrollToOffset({
             offset: selection.wheelIndex * ROW_HEIGHT_MAPPING,

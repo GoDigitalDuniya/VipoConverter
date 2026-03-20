@@ -1,10 +1,10 @@
 import React, { useCallback } from "react";
 import {
-    DimensionValue,
-    FlatList,
-    ListRenderItemInfo,
-    StyleSheet,
-    View
+  DimensionValue,
+  FlatList,
+  ListRenderItemInfo,
+  StyleSheet,
+  View
 } from "react-native";
 import { useTheme } from "../../../../../theme/ThemeProvider";
 import { ROW_HEIGHT_MAPPING } from "./_constants";
